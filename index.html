@@ -285,21 +285,29 @@ function norm(s){return (s||'').toString().toLowerCase()
   .replace(/[أإآ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه').replace(/[ًٌٍَُِّْ]/g,'').trim();}
 
 function search(qr){
-  const q=norm(qr); if(!q) return [];
+  const raw=(qr||'').trim(); if(!raw) return [];
   // exact barcode
-  if(/^\d{5,}$/.test(qr.trim())){
-    const idx=DATA.bc.get(qr.trim());
-    if(idx!=null) return [idx];
-  }
+  if(/^\d{5,}$/.test(raw)){const idx=DATA.bc.get(raw);if(idx!=null) return [idx];}
   // exact code
-  if(codeIndex.has(qr.trim())) return [codeIndex.get(qr.trim())];
-  const res=[];
+  if(codeIndex.has(raw)) return [codeIndex.get(raw)];
+  const tokens=norm(raw).split(/\s+/).filter(Boolean);
+  if(!tokens.length) return [];
   const items=DATA.items;
+  const andRes=[], orRes=[];
   for(let i=0;i<items.length;i++){
     const it=items[i];
-    if(norm(it[2]).includes(q)||norm(it[1]).includes(q)||it[0].includes(q)){res.push(i);if(res.length>=300)break;}
+    const hay=norm(it[2])+' '+norm(it[1])+' '+it[0];
+    let all=true, any=false;
+    for(const t of tokens){ if(hay.includes(t)) any=true; else all=false; }
+    if(all){ const pos=hay.indexOf(tokens[0]); andRes.push([i,pos,(it[2]||it[1]).length]); if(andRes.length>=600)break; }
+    else if(any && orRes.length<400){ orRes.push(i); }
   }
-  return res;
+  // rank AND matches: earlier position first, then shorter name
+  andRes.sort((a,b)=>a[1]-b[1]||a[2]-b[2]);
+  let out=andRes.map(x=>x[0]);
+  // if nothing matched all tokens, fall back to suggestions matching any token
+  if(!out.length) out=orRes;
+  return out.slice(0,400);
 }
 
 /* ---------- render ---------- */
