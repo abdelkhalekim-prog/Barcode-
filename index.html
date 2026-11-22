@@ -112,6 +112,38 @@ main{flex:1;padding:14px 16px 90px}
 .scanner .closeS{width:42px;height:42px;border:0;border-radius:50%;background:rgba(0,0,0,.5);color:#fff;font-size:22px;cursor:pointer}
 .scanner .hintS{position:absolute;bottom:40px;left:0;right:0;text-align:center;color:#fff;z-index:2;font-size:15px;font-weight:600;
   text-shadow:0 1px 4px #000}
+/* barcode modal */
+.bcmodal{position:fixed;inset:0;z-index:150;background:rgba(3,7,15,.78);backdrop-filter:blur(4px);
+  display:none;align-items:flex-end;justify-content:center}
+.bcmodal.show{display:flex}
+.bcsheet{background:#fff;color:#0b1220;width:100%;max-width:520px;border-radius:24px 24px 0 0;
+  padding:22px 18px calc(22px + env(safe-area-inset-bottom));position:relative;
+  box-shadow:0 -10px 40px rgba(0,0,0,.5);animation:up .25s ease;max-height:92vh;overflow:auto}
+@keyframes up{from{transform:translateY(100%)}to{transform:none}}
+.bcClose{position:absolute;top:14px;inset-inline-end:14px;width:36px;height:36px;border:0;border-radius:50%;
+  background:#eef2f7;color:#334;font-size:19px;cursor:pointer;z-index:2}
+.bcname{font-size:20px;font-weight:800;line-height:1.5;margin:4px 40px 2px 0;color:#0b1220}
+.bcen{font-size:13px;color:#64748b;font-weight:600;direction:ltr;text-align:right;margin-bottom:10px}
+.bcmeta{display:flex;gap:8px;margin-bottom:14px}
+.bcmeta .pill{border-color:#e2e8f0;background:#f1f5f9}
+.bcmeta .pill.code{color:#0369a1}.bcmeta .pill.price{color:#b45309;background:#fef6e7;border-color:#fde3b0}
+.bcview{background:#fff;border:2px solid #0b1220;border-radius:16px;padding:16px;display:grid;place-items:center;
+  min-height:220px;margin:0 auto 10px;max-width:320px}
+.bcview svg{width:100%;height:auto;max-width:280px;display:block}
+.bcview img{width:100%;max-width:280px;image-rendering:pixelated}
+.bcnum{text-align:center;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:22px;font-weight:800;
+  letter-spacing:2px;color:#0b1220;margin-bottom:12px;direction:ltr}
+.bctoggle{display:flex;gap:8px;justify-content:center;margin-bottom:14px}
+.tg{border:1.5px solid #cbd5e1;background:#fff;color:#334;padding:9px 18px;border-radius:11px;font-size:14px;
+  font-weight:800;cursor:pointer}
+.tg.active{background:#0f766e;border-color:#0f766e;color:#fff}
+.bcother{display:flex;gap:7px;overflow-x:auto;padding-bottom:6px;margin-bottom:12px;scrollbar-width:none}
+.bcother::-webkit-scrollbar{display:none}
+.bcchip{flex:0 0 auto;border:1.5px solid #e2e8f0;background:#f8fafc;color:#0b1220;border-radius:10px;
+  padding:7px 11px;font-size:12px;font-weight:700;cursor:pointer;direction:ltr;font-family:ui-monospace,monospace}
+.bcchip.on{border-color:#0f766e;background:#ecfdf5;color:#0f766e}
+.bctip{text-align:center;color:#64748b;font-size:12px;font-weight:600;line-height:1.7}
+.card{cursor:pointer}
 /* toast */
 .toast{position:fixed;bottom:84px;left:50%;transform:translateX(-50%) translateY(20px);
   background:#1f2a40;color:#fff;padding:11px 18px;border-radius:12px;font-size:14px;font-weight:700;
@@ -186,12 +218,34 @@ main{flex:1;padding:14px 16px 90px}
   <div class="hintS" id="scanHint">وجّه الكاميرا على الباركود</div>
 </div>
 
+<!-- Barcode viewer -->
+<div class="bcmodal" id="bcmodal">
+  <div class="bcsheet">
+    <button class="bcClose" id="bcClose">✕</button>
+    <div class="bcname" id="bcName"></div>
+    <div class="bcen" id="bcEn"></div>
+    <div class="bcmeta"><span class="pill code" id="bcCode"></span><span class="pill price" id="bcPrice"></span></div>
+    <div class="bcview" id="bcView"></div>
+    <div class="bcnum" id="bcNum"></div>
+    <div class="bctoggle">
+      <button class="tg active" id="tgQR">QR</button>
+      <button class="tg" id="tg1D">خطي</button>
+      <button class="tg" id="btnBright">💡 سطوع</button>
+    </div>
+    <div class="bcother" id="bcOther"></div>
+    <div class="bctip">قرّب الكاميرا/الماسح من الشاشة • لو ماقراش جرّب باركود تاني للصنف</div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script src="zxing.min.js"></script>
+<script src="qrcode.js"></script>
+<script src="jsbarcode.min.js"></script>
 <script>
 const $=s=>document.querySelector(s);
-let DATA={items:[],bc:new Map()}, codeIndex=new Map();
+let DATA={items:[],bc:new Map()}, codeIndex=new Map(), itemBc=[];
+function bcRank(b){if(b.startsWith('7777'))return 0;if(b.startsWith('8888'))return 1;if(b.startsWith('5555'))return 2;if(b.startsWith('9990'))return 3;if(b.length===13)return 4;return 5;}
 let fav=new Set(JSON.parse(localStorage.getItem('fav')||'[]'));
 let recent=JSON.parse(localStorage.getItem('recent')||'[]');
 let missing=JSON.parse(localStorage.getItem('missing')||'[]');
@@ -216,6 +270,10 @@ async function load(){
     DATA.items=b.items;
     for(let i=0;i<b.items.length;i++) codeIndex.set(b.items[i][0],i);
     DATA.bc=new Map(b.bc);
+    // reverse index: item -> its barcodes (sorted by priority)
+    itemBc=Array.from({length:b.items.length},()=>[]);
+    for(const pair of b.bc){ if(itemBc[pair[1]]) itemBc[pair[1]].push(pair[0]); }
+    for(const arr of itemBc) arr.sort((x,y)=>bcRank(x)-bcRank(y)||x.length-y.length);
     fill.style.width='100%';
     $('#subcount').textContent=b.items.length.toLocaleString('ar-EG')+' صنف';
     setTimeout(()=>{$('#loader').style.opacity=0;setTimeout(()=>$('#loader').style.display='none',400)},200);
@@ -248,7 +306,7 @@ function search(qr){
 function itemCard(idx){
   const it=DATA.items[idx]; // [code,en,ar,price]
   const isFav=fav.has(it[0]);
-  const div=document.createElement('div');div.className='card';
+  const div=document.createElement('div');div.className='card';div.dataset.idx=idx;
   div.innerHTML=`
     <button class="star ${isFav?'on':''}" data-code="${it[0]}">
       <svg viewBox="0 0 24 24" fill="${isFav?'currentColor':'none'}" stroke="currentColor" stroke-width="2"><path d="m12 3 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 18.8 6.2 21.8l1.1-6.5L2.6 10.7l6.5-.9z"/></svg>
@@ -323,7 +381,61 @@ $('#main').addEventListener('click',e=>{
     const code=copy.dataset.copy; if(codeIndex.has(code))pushRecent(code); return;}
   const del=e.target.closest('[data-del]');
   if(del){missing=missing.filter(m=>m.q!==del.dataset.del);localStorage.setItem('missing',JSON.stringify(missing));render([],'');return;}
+  const card=e.target.closest('.card[data-idx]');
+  if(card){openBarcode(+card.dataset.idx);}
 });
+
+/* ---------- barcode viewer ---------- */
+let bcState={idx:-1,list:[],cur:0,mode:'qr'};
+function openBarcode(idx){
+  const it=DATA.items[idx]; if(!it)return;
+  let list=(itemBc[idx]||[]).slice();
+  if(!list.length){ // fallback: the code itself
+    list=[it[0]];
+  }
+  bcState={idx,list,cur:0,mode:'qr'};
+  $('#bcName').textContent=it[2]||it[1];
+  $('#bcEn').textContent=(it[1]&&it[1]!==it[2])?it[1]:'';
+  $('#bcCode').innerHTML=`<span class="lbl">كود</span>${esc(it[0])}`;
+  $('#bcPrice').innerHTML=`<span class="lbl">ريال</span>${esc(it[3])}`;
+  pushRecent(it[0]);
+  // other barcodes chips
+  const other=$('#bcOther');other.innerHTML='';
+  if(list.length>1){
+    list.forEach((b,i)=>{const c=document.createElement('button');c.className='bcchip'+(i===0?' on':'');
+      c.textContent=b;c.dataset.i=i;other.appendChild(c);});
+  }
+  drawBarcode();
+  $('#bcmodal').classList.add('show');
+}
+function drawBarcode(){
+  const val=bcState.list[bcState.cur];
+  $('#bcNum').textContent=val;
+  const view=$('#bcView');view.innerHTML='';
+  try{
+    if(bcState.mode==='qr'){
+      const qr=qrcode(0,'M');qr.addData(val);qr.make();
+      view.innerHTML=qr.createSvgTag({cellSize:7,margin:2,scalable:true});
+    }else{
+      const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+      view.appendChild(svg);
+      JsBarcode(svg,val,{format:'CODE128',width:2.3,height:110,displayValue:false,margin:6});
+    }
+  }catch(e){view.innerHTML='<div style="color:#b91c1c;font-weight:700">تعذّر عرض الباركود</div>';}
+  // highlight chip
+  [...document.querySelectorAll('.bcchip')].forEach(c=>c.classList.toggle('on',+c.dataset.i===bcState.cur));
+}
+$('#bcClose').onclick=()=>$('#bcmodal').classList.remove('show');
+$('#bcmodal').addEventListener('click',e=>{if(e.target.id==='bcmodal')$('#bcmodal').classList.remove('show');});
+$('#tgQR').onclick=()=>{bcState.mode='qr';$('#tgQR').classList.add('active');$('#tg1D').classList.remove('active');drawBarcode();};
+$('#tg1D').onclick=()=>{bcState.mode='1d';$('#tg1D').classList.add('active');$('#tgQR').classList.remove('active');drawBarcode();};
+$('#bcOther').addEventListener('click',e=>{const c=e.target.closest('.bcchip');if(!c)return;bcState.cur=+c.dataset.i;drawBarcode();});
+$('#btnBright').onclick=function(){
+  const s=document.body.style;
+  if(this.classList.toggle('active')){s.filter='brightness(1.0)';document.documentElement.style.setProperty('--x','1');
+    $('#bcmodal').style.background='rgba(255,255,255,.98)';}
+  else{$('#bcmodal').style.background='rgba(3,7,15,.78)';}
+};
 function pushRecent(code){recent=recent.filter(c=>c!==code);recent.unshift(code);recent=recent.slice(0,40);
   localStorage.setItem('recent',JSON.stringify(recent));}
 function addMissing(q){missing.push({q,t:Date.now()});localStorage.setItem('missing',JSON.stringify(missing));}
