@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0f766e">
+<title>بحث الأصناف</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{
+  --bg:#0b1220; --card:#121a2b; --card2:#182236; --line:#243149;
+  --txt:#eef2f8; --mut:#9fb0c7; --accent:#14b8a6; --accent2:#0f766e;
+  --gold:#f5b301; --danger:#ef4444; --ok:#22c55e; --radius:18px;
+  --shadow:0 8px 30px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;height:100%}
+body{
+  font-family:system-ui,-apple-system,"Segoe UI",Tahoma,"Noto Naskh Arabic",sans-serif;
+  background:radial-gradient(1200px 600px at 100% -10%,#15304a 0,transparent 60%),var(--bg);
+  color:var(--txt);overscroll-behavior-y:none;
+}
+.app{max-width:760px;margin:0 auto;min-height:100%;display:flex;flex-direction:column}
+header{
+  position:sticky;top:0;z-index:30;padding:14px 16px calc(14px + 6px);
+  background:linear-gradient(180deg,rgba(11,18,32,.96),rgba(11,18,32,.82));
+  backdrop-filter:blur(10px);border-bottom:1px solid var(--line);
+}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.brand .logo{
+  width:38px;height:38px;border-radius:11px;display:grid;place-items:center;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:var(--shadow);flex:0 0 auto;
+}
+.brand h1{font-size:18px;margin:0;font-weight:800;letter-spacing:.2px}
+.brand .sub{font-size:12px;color:var(--mut);margin-top:2px;font-weight:600}
+.searchbar{display:flex;gap:9px;align-items:stretch}
+.inpwrap{position:relative;flex:1}
+.inpwrap svg{position:absolute;inset-inline-start:13px;top:50%;transform:translateY(-50%);width:20px;height:20px;color:var(--mut)}
+input#q{
+  width:100%;height:52px;border-radius:14px;border:1.5px solid var(--line);
+  background:var(--card);color:var(--txt);font-size:17px;font-weight:600;
+  padding:0 44px 0 44px;outline:none;transition:border-color .15s;
+}
+input#q:focus{border-color:var(--accent)}
+.clearbtn{position:absolute;inset-inline-end:8px;top:50%;transform:translateY(-50%);
+  width:30px;height:30px;border:0;border-radius:50%;background:var(--card2);color:var(--mut);
+  font-size:18px;display:none;cursor:pointer}
+.clearbtn.show{display:grid;place-items:center}
+.scanbtn{
+  width:52px;height:52px;border-radius:14px;border:0;flex:0 0 auto;cursor:pointer;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;display:grid;place-items:center;
+  box-shadow:var(--shadow);
+}
+.scanbtn svg{width:25px;height:25px}
+.tabs{display:flex;gap:7px;margin-top:11px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{
+  border:1px solid var(--line);background:var(--card);color:var(--mut);
+  padding:7px 14px;border-radius:999px;font-size:13px;font-weight:700;white-space:nowrap;cursor:pointer;
+}
+.tab.active{background:var(--accent2);border-color:var(--accent);color:#fff}
+main{flex:1;padding:14px 16px 90px}
+.hint{color:var(--mut);text-align:center;padding:40px 20px;font-size:15px;line-height:1.9}
+.hint .big{font-size:46px;display:block;margin-bottom:10px;opacity:.9}
+.count{color:var(--mut);font-size:13px;font-weight:700;margin:2px 2px 12px;display:flex;justify-content:space-between;align-items:center}
+.card{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:14px;margin-bottom:11px;box-shadow:0 2px 10px rgba(0,0,0,.18);position:relative;
+  animation:pop .18s ease;
+}
+@keyframes pop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.card .ar{font-size:18px;font-weight:800;line-height:1.5;margin:0 0 4px;color:#fff}
+.card .en{font-size:13px;color:var(--mut);font-weight:600;line-height:1.4;direction:ltr;text-align:right}
+.row{display:flex;align-items:center;gap:8px;margin-top:11px;flex-wrap:wrap}
+.pill{
+  display:inline-flex;align-items:center;gap:6px;background:var(--card2);
+  border:1px solid var(--line);border-radius:10px;padding:7px 11px;font-size:13px;font-weight:700;
+  cursor:pointer;direction:ltr
+}
+.pill .lbl{color:var(--mut);font-size:11px;font-weight:700}
+.pill.price{background:linear-gradient(135deg,rgba(245,179,1,.16),rgba(245,179,1,.05));border-color:rgba(245,179,1,.35);color:var(--gold);font-size:16px}
+.pill.code{color:#7dd3fc}
+.pill.bc{color:#c4b5fd}
+.star{position:absolute;top:12px;inset-inline-end:12px;width:34px;height:34px;border:0;border-radius:10px;
+  background:var(--card2);color:var(--mut);cursor:pointer;display:grid;place-items:center}
+.star.on{color:var(--gold)}
+.star svg{width:19px;height:19px}
+.notfound{
+  text-align:center;padding:30px 16px;background:var(--card);border:1px dashed var(--line);
+  border-radius:var(--radius);
+}
+.notfound .big{font-size:42px}
+.notfound h3{margin:8px 0 4px;font-size:17px}
+.notfound p{color:var(--mut);margin:0 0 14px;font-size:14px;direction:ltr}
+.btn{border:0;border-radius:12px;padding:12px 18px;font-size:15px;font-weight:800;cursor:pointer;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}
+.btn.ghost{background:var(--card2);color:var(--txt);border:1px solid var(--line)}
+/* scanner overlay */
+.scanner{position:fixed;inset:0;z-index:100;background:#000;display:none;flex-direction:column}
+.scanner.show{display:flex}
+.scanner video{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+.scanframe{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}
+.scanframe .box{width:74%;max-width:340px;aspect-ratio:1.25;border:3px solid rgba(255,255,255,.9);
+  border-radius:18px;box-shadow:0 0 0 2000px rgba(0,0,0,.45);position:relative}
+.scanframe .laser{position:absolute;left:6%;right:6%;height:3px;background:var(--accent);border-radius:3px;
+  box-shadow:0 0 12px var(--accent);animation:scan 2s ease-in-out infinite}
+@keyframes scan{0%,100%{top:12%}50%{top:85%}}
+.scanner .top{position:absolute;top:0;left:0;right:0;padding:16px;display:flex;justify-content:space-between;
+  align-items:center;z-index:2;background:linear-gradient(180deg,rgba(0,0,0,.6),transparent)}
+.scanner .top b{color:#fff;font-size:16px}
+.scanner .closeS{width:42px;height:42px;border:0;border-radius:50%;background:rgba(0,0,0,.5);color:#fff;font-size:22px;cursor:pointer}
+.scanner .hintS{position:absolute;bottom:40px;left:0;right:0;text-align:center;color:#fff;z-index:2;font-size:15px;font-weight:600;
+  text-shadow:0 1px 4px #000}
+/* toast */
+.toast{position:fixed;bottom:84px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:#1f2a40;color:#fff;padding:11px 18px;border-radius:12px;font-size:14px;font-weight:700;
+  box-shadow:var(--shadow);opacity:0;transition:.25s;z-index:200;border:1px solid var(--line);pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+/* loader */
+#loader{position:fixed;inset:0;background:var(--bg);z-index:300;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:18px;transition:opacity .4s}
+#loader .logo{width:64px;height:64px;border-radius:18px;background:linear-gradient(135deg,var(--accent),var(--accent2));
+  display:grid;place-items:center;box-shadow:var(--shadow)}
+#loader .bar{width:200px;height:7px;background:var(--card2);border-radius:5px;overflow:hidden}
+#loader .fill{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--gold));transition:width .2s}
+#loader .t{color:var(--mut);font-size:14px;font-weight:700}
+.fab{position:fixed;bottom:18px;inset-inline-start:18px;z-index:40;background:var(--card);border:1px solid var(--line);
+  color:var(--txt);border-radius:14px;padding:11px 15px;font-size:13px;font-weight:800;box-shadow:var(--shadow);cursor:pointer;
+  display:flex;align-items:center;gap:7px}
+.fab svg{width:17px;height:17px;color:var(--gold)}
+</style>
+</head>
+<body>
+<div id="loader">
+  <div class="logo"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M3 5v14M7 5v14M11 5v14M15 5v14M19 5v14" stroke-linecap="round"/></svg></div>
+  <div class="t" id="ltxt">جاري تحميل الأصناف…</div>
+  <div class="bar"><div class="fill" id="lfill"></div></div>
+</div>
+
+<div class="app">
+  <header>
+    <div class="brand">
+      <div class="logo"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"><path d="M3 5v14M7 5v14M11 5v14M15 5v14M19 5v14" stroke-linecap="round"/></svg></div>
+      <div>
+        <h1>بحث الأصناف</h1>
+        <div class="sub" id="subcount">— صنف</div>
+      </div>
+    </div>
+    <div class="searchbar">
+      <div class="inpwrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3" stroke-linecap="round"/></svg>
+        <input id="q" inputmode="search" autocomplete="off" placeholder="الكود أو الاسم أو الباركود…">
+        <button class="clearbtn" id="clear">✕</button>
+      </div>
+      <button class="scanbtn" id="scan" title="مسح باركود">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2" stroke-linecap="round"/><path d="M7 12h10" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div class="tabs" id="tabs">
+      <div class="tab active" data-f="all">الكل</div>
+      <div class="tab" data-f="fav">المفضلة ★</div>
+      <div class="tab" data-f="recent">الأخير</div>
+      <div class="tab" data-f="missing">غير متوفر</div>
+    </div>
+  </header>
+
+  <main id="main">
+    <div class="hint" id="hint">
+      <span class="big">🔍</span>
+      اكتب كود الصنف أو جزء من اسمه (عربي أو إنجليزي)،<br>أو اضغط زر المسح عشان تقرأ الباركود بالكاميرا.
+    </div>
+  </main>
+</div>
+
+<button class="fab" id="exportMissing" style="display:none">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  تصدير غير المتوفر
+</button>
+
+<!-- Scanner -->
+<div class="scanner" id="scanner">
+  <div class="top"><b>امسح الباركود</b><button class="closeS" id="closeScan">✕</button></div>
+  <video id="video" playsinline muted></video>
+  <div class="scanframe"><div class="box"><div class="laser"></div></div></div>
+  <div class="hintS" id="scanHint">وجّه الكاميرا على الباركود</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="zxing.min.js"></script>
+<script>
+const $=s=>document.querySelector(s);
+let DATA={items:[],bc:new Map()}, codeIndex=new Map();
+let fav=new Set(JSON.parse(localStorage.getItem('fav')||'[]'));
+let recent=JSON.parse(localStorage.getItem('recent')||'[]');
+let missing=JSON.parse(localStorage.getItem('missing')||'[]');
+let curFilter='all';
+
+/* ---------- load data ---------- */
+async function load(){
+  const fill=$('#lfill'),ltxt=$('#ltxt');
+  try{
+    const res=await fetch('data.pack');
+    const reader=res.body.getReader();
+    const len=+res.headers.get('Content-Length')||5000000;
+    let received=0,chunks=[];
+    while(true){const{done,value}=await reader.read();if(done)break;chunks.push(value);received+=value.length;
+      fill.style.width=Math.min(60,received/len*60)+'%';}
+    let blob=new Blob(chunks);
+    ltxt.textContent='جاري فك الضغط…';fill.style.width='72%';
+    let ds=new DecompressionStream('gzip');
+    let txt=await new Response(blob.stream().pipeThrough(ds)).text();
+    fill.style.width='88%';ltxt.textContent='جاري التجهيز…';
+    const b=JSON.parse(txt);
+    DATA.items=b.items;
+    for(let i=0;i<b.items.length;i++) codeIndex.set(b.items[i][0],i);
+    DATA.bc=new Map(b.bc);
+    fill.style.width='100%';
+    $('#subcount').textContent=b.items.length.toLocaleString('ar-EG')+' صنف';
+    setTimeout(()=>{$('#loader').style.opacity=0;setTimeout(()=>$('#loader').style.display='none',400)},200);
+  }catch(e){ltxt.textContent='تعذّر تحميل الداتا — أعد فتح الصفحة';console.error(e)}
+}
+
+/* ---------- search ---------- */
+function norm(s){return (s||'').toString().toLowerCase()
+  .replace(/[أإآ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه').replace(/[ًٌٍَُِّْ]/g,'').trim();}
+
+function search(qr){
+  const q=norm(qr); if(!q) return [];
+  // exact barcode
+  if(/^\d{5,}$/.test(qr.trim())){
+    const idx=DATA.bc.get(qr.trim());
+    if(idx!=null) return [idx];
+  }
+  // exact code
+  if(codeIndex.has(qr.trim())) return [codeIndex.get(qr.trim())];
+  const res=[];
+  const items=DATA.items;
+  for(let i=0;i<items.length;i++){
+    const it=items[i];
+    if(norm(it[2]).includes(q)||norm(it[1]).includes(q)||it[0].includes(q)){res.push(i);if(res.length>=300)break;}
+  }
+  return res;
+}
+
+/* ---------- render ---------- */
+function itemCard(idx){
+  const it=DATA.items[idx]; // [code,en,ar,price]
+  const isFav=fav.has(it[0]);
+  const div=document.createElement('div');div.className='card';
+  div.innerHTML=`
+    <button class="star ${isFav?'on':''}" data-code="${it[0]}">
+      <svg viewBox="0 0 24 24" fill="${isFav?'currentColor':'none'}" stroke="currentColor" stroke-width="2"><path d="m12 3 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 18.8 6.2 21.8l1.1-6.5L2.6 10.7l6.5-.9z"/></svg>
+    </button>
+    <div class="ar">${esc(it[2]||it[1])}</div>
+    ${it[1]&&it[1]!==it[2]?`<div class="en">${esc(it[1])}</div>`:''}
+    <div class="row">
+      <span class="pill price" data-copy="${it[3]}"><span class="lbl">ريال</span>${esc(it[3])}</span>
+      <span class="pill code" data-copy="${it[0]}"><span class="lbl">كود</span>${esc(it[0])}</span>
+    </div>`;
+  return div;
+}
+function esc(s){return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+
+function render(idxs,q){
+  const main=$('#main');main.innerHTML='';
+  $('#exportMissing').style.display = curFilter==='missing'&&missing.length ? 'flex':'none';
+  if(curFilter==='missing'){
+    if(!missing.length){main.innerHTML=emptyHint('🗂️','مفيش أصناف غير متوفرة','الأصناف اللي تدوّر عليها وماتلاقيهاش هتتسجّل هنا.');return;}
+    const c=document.createElement('div');c.className='count';c.innerHTML=`<span>${missing.length} صنف غير متوفر</span><span></span>`;main.appendChild(c);
+    missing.slice().reverse().forEach(m=>{
+      const d=document.createElement('div');d.className='card';
+      d.innerHTML=`<div class="ar">باركود / كود: ${esc(m.q)}</div><div class="en">${new Date(m.t).toLocaleString('ar-EG')}</div>
+      <div class="row"><span class="pill" data-copy="${esc(m.q)}"><span class="lbl">نسخ</span>${esc(m.q)}</span>
+      <button class="pill" data-del="${esc(m.q)}" style="color:var(--danger)">حذف</button></div>`;
+      main.appendChild(d);});
+    return;
+  }
+  if(curFilter==='fav'){idxs=[...fav].map(c=>codeIndex.get(c)).filter(x=>x!=null);
+    if(!idxs.length){main.innerHTML=emptyHint('★','مفيش مفضلة','اضغط النجمة على أي صنف عشان يتحفظ هنا.');return;}}
+  if(curFilter==='recent'){idxs=recent.map(c=>codeIndex.get(c)).filter(x=>x!=null);
+    if(!idxs.length){main.innerHTML=emptyHint('🕒','مفيش بحث سابق','آخر الأصناف اللي فتحتها هتظهر هنا.');return;}}
+  if(curFilter==='all'&&!q){main.innerHTML=startHint();return;}
+  if(curFilter==='all'&&!idxs.length){
+    const d=document.createElement('div');d.className='notfound';
+    d.innerHTML=`<div class="big">📭</div><h3>الصنف مش موجود</h3><p>${esc(q)}</p>
+      <button class="btn" id="recMiss">سجّله في قائمة غير المتوفر</button>`;
+    main.appendChild(d);
+    $('#recMiss').onclick=()=>{addMissing(q);toast('اتسجّل في غير المتوفر');};
+    return;
+  }
+  const c=document.createElement('div');c.className='count';
+  c.innerHTML=`<span>${idxs.length}${idxs.length>=300?'+':''} نتيجة</span><span></span>`;main.appendChild(c);
+  const frag=document.createDocumentFragment();
+  idxs.forEach(i=>frag.appendChild(itemCard(i)));
+  main.appendChild(frag);
+}
+function emptyHint(ic,t,s){return `<div class="hint"><span class="big">${ic}</span><b>${t}</b><br><span style="font-size:14px">${s}</span></div>`}
+function startHint(){return `<div class="hint"><span class="big">🔍</span>اكتب كود الصنف أو جزء من اسمه (عربي أو إنجليزي)،<br>أو اضغط زر المسح عشان تقرأ الباركود بالكاميرا.</div>`}
+
+/* ---------- interactions ---------- */
+let t=null;
+$('#q').addEventListener('input',e=>{
+  const v=e.target.value;
+  $('#clear').classList.toggle('show',!!v);
+  clearTimeout(t);
+  t=setTimeout(()=>{if(curFilter!=='all'){setFilter('all');} render(search(v),v);},120);
+});
+$('#clear').onclick=()=>{$('#q').value='';$('#clear').classList.remove('show');render([], '');};
+$('#tabs').onclick=e=>{const tab=e.target.closest('.tab');if(!tab)return;setFilter(tab.dataset.f);};
+function setFilter(f){curFilter=f;[...document.querySelectorAll('.tab')].forEach(x=>x.classList.toggle('active',x.dataset.f===f));
+  render(search($('#q').value),$('#q').value);}
+
+$('#main').addEventListener('click',e=>{
+  const star=e.target.closest('.star');
+  if(star){const code=star.dataset.code;if(fav.has(code))fav.delete(code);else fav.add(code);
+    localStorage.setItem('fav',JSON.stringify([...fav]));star.classList.toggle('on');
+    star.querySelector('svg').setAttribute('fill',fav.has(code)?'currentColor':'none');
+    if(curFilter==='fav')render([],''); return;}
+  const copy=e.target.closest('[data-copy]');
+  if(copy){navigator.clipboard?.writeText(copy.dataset.copy);toast('اتنسخ: '+copy.dataset.copy);
+    const code=copy.dataset.copy; if(codeIndex.has(code))pushRecent(code); return;}
+  const del=e.target.closest('[data-del]');
+  if(del){missing=missing.filter(m=>m.q!==del.dataset.del);localStorage.setItem('missing',JSON.stringify(missing));render([],'');return;}
+});
+function pushRecent(code){recent=recent.filter(c=>c!==code);recent.unshift(code);recent=recent.slice(0,40);
+  localStorage.setItem('recent',JSON.stringify(recent));}
+function addMissing(q){missing.push({q,t:Date.now()});localStorage.setItem('missing',JSON.stringify(missing));}
+
+$('#exportMissing').onclick=()=>{
+  if(!missing.length)return;
+  let csv='﻿الاستعلام,التاريخ\n'+missing.map(m=>`"${m.q}","${new Date(m.t).toLocaleString('ar-EG')}"`).join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download='غير_متوفر.csv';a.click();
+};
+
+/* ---------- scanner ---------- */
+let codeReader=null,streaming=false;
+$('#scan').onclick=openScanner;
+$('#closeScan').onclick=closeScanner;
+async function openScanner(){
+  $('#scanner').classList.add('show');
+  try{
+    if('BarcodeDetector' in window){
+      await nativeScan();
+    }else{
+      await zxingScan();
+    }
+  }catch(e){$('#scanHint').textContent='تعذّر فتح الكاميرا — اسمح بالإذن وجرّب تاني';console.error(e);}
+}
+async function nativeScan(){
+  const det=new BarcodeDetector({formats:['ean_13','ean_8','code_128','code_39','upc_a','upc_e','itf','codabar','qr_code']});
+  const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
+  const v=$('#video');v.srcObject=stream;await v.play();streaming=true;
+  const loop=async()=>{
+    if(!streaming)return;
+    try{const codes=await det.detect(v);if(codes.length){onScan(codes[0].rawValue);return;}}catch(e){}
+    requestAnimationFrame(loop);
+  };loop();
+}
+async function zxingScan(){
+  codeReader=new ZXing.BrowserMultiFormatReader();
+  streaming=true;
+  codeReader.decodeFromVideoDevice(null,$('#video'),(result,err)=>{
+    if(result&&streaming)onScan(result.getText());
+  });
+}
+function onScan(val){
+  if(!streaming)return;streaming=false;
+  if(navigator.vibrate)navigator.vibrate(60);
+  closeScanner();
+  $('#q').value=val;$('#clear').classList.add('show');setFilter('all');
+  const idxs=search(val);
+  render(idxs,val);
+  if(!idxs.length){toast('الصنف مش موجود');}
+}
+function closeScanner(){
+  streaming=false;
+  const v=$('#video');if(v.srcObject){v.srcObject.getTracks().forEach(t=>t.stop());v.srcObject=null;}
+  if(codeReader){try{codeReader.reset();}catch(e){}codeReader=null;}
+  $('#scanner').classList.remove('show');
+}
+
+/* ---------- toast ---------- */
+let tt=null;
+function toast(m){const el=$('#toast');el.textContent=m;el.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>el.classList.remove('show'),1800);}
+
+/* ---------- pwa ---------- */
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}
+
+load();
+</script>
+</body>
+</html>
