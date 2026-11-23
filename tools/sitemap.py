@@ -22,5 +22,11 @@ for loc in re.findall(r'<loc>([^<]+)</loc>', idx):
             img[s] = next((x for x in ims if 'small_image' in x), ims[0]).split('?')[0]
     time.sleep(1)
 json.dump(sorted(skus), open('skus.json', 'w'))
-json.dump(img, open('img.json', 'w'))
+# keep images from earlier runs when a sitemap leaves them out this week
+try:
+    old = json.load(open('img.json'))
+except FileNotFoundError:
+    old = {}
+old.update(img)
+json.dump(old, open('img.json', 'w'))
 print('skus', len(skus), 'images', len(img))
