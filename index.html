@@ -70,6 +70,14 @@ header{position:sticky;top:0;z-index:30;padding:calc(12px + env(safe-area-inset-
 .chip.active{background:#fff;border-color:#fff;color:var(--blue2)}
 .chip[data-f=express].active{color:var(--green)}
 .chip[data-f=global].active{color:var(--teal)}
+.chip[data-f=pm].active{color:#b7791f}
+.pmi{display:inline-grid;place-items:center;width:24px;height:22px;border-radius:6px;background:var(--blue-soft);color:var(--blue)}
+.pmi svg{width:14px;height:14px;fill:currentColor}
+.pmi.top{background:linear-gradient(135deg,#f6b83c,#e89a0c);color:#fff}
+.card.pm{border-inline-start:4px solid var(--blue)}
+.card.pm3{border:1.5px solid #f2c15b;border-inline-start:5px solid #e89a0c;background:linear-gradient(90deg,#fff 70%,#fff8e8)}
+.scat{font-size:12px;color:var(--mut);margin-top:5px;line-height:1.5}
+.scat b{color:var(--blue2);font-weight:700;text-transform:capitalize;font-family:var(--latin)}
 
 main{flex:1;padding:14px 14px 100px}
 .count{color:var(--mut);font-size:13.5px;font-weight:500;margin:2px 4px 10px;display:flex;justify-content:space-between;align-items:center}
@@ -101,7 +109,7 @@ main{flex:1;padding:14px 14px 100px}
 .code{font:600 12px var(--latin);color:var(--blue);direction:ltr;margin-inline-start:auto;letter-spacing:.3px}
 .star{position:absolute;top:8px;inset-inline-end:8px;width:32px;height:32px;border:0;border-radius:10px;background:transparent;color:#c4c4c4;cursor:pointer;display:grid;place-items:center}
 .star svg{width:19px;height:19px}
-.star.on{color:#f2a900}.star.on svg{fill:currentColor}
+.star.on{color:var(--red)}.star.on svg{fill:currentColor}
 mark{background:#fff2b8;color:inherit;border-radius:3px;padding:0 1px}
 .more{display:flex;margin:8px auto 0;padding:12px 22px}
 
@@ -207,6 +215,8 @@ mark{background:#fff2b8;color:inherit;border-radius:3px;padding:0 1px}
   <symbol id="i-ext" viewBox="0 0 24 24"><path d="M14 3h7v7M10 14 21 3M19 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h5"/></symbol>
   <symbol id="i-flash" viewBox="0 0 24 24"><path d="M7 2h10l-2 7h3L9 22l2-9H7z"/></symbol>
   <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></symbol>
+  <symbol id="i-heart" viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/></symbol>
   <symbol id="i-pill" viewBox="0 0 24 24"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7zM8.5 8.5l7 7"/></symbol>
 </svg>
 
@@ -227,7 +237,7 @@ mark{background:#fff2b8;color:inherit;border-radius:3px;padding:0 1px}
     <div class="searchbar">
       <div class="inp">
         <svg class="i"><use href="#i-search"/></svg>
-        <input id="q" type="search" inputmode="search" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="search" placeholder="اسم الصنف أو الكود أو الباركود">
+        <input id="q" type="search" inputmode="search" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="search" placeholder="الاسم أو الكود أو الباركود">
         <button class="clear" id="clear" aria-label="مسح"><svg class="i"><use href="#i-x"/></svg></button>
       </div>
       <button class="scanbtn" id="scan" aria-label="مسح باركود"><svg class="i"><use href="#i-scan"/></svg></button>
@@ -236,7 +246,8 @@ mark{background:#fff2b8;color:inherit;border-radius:3px;padding:0 1px}
       <button class="chip active" data-f="all">الكل</button>
       <button class="chip" data-f="express"><svg class="i"><use href="#i-bolt"/></svg>إكسبريس</button>
       <button class="chip" data-f="global"><svg class="i"><use href="#i-globe"/></svg>جلوبال</button>
-      <button class="chip" data-f="fav"><svg class="i"><use href="#i-star"/></svg>المفضلة</button>
+      <button class="chip" data-f="pm" aria-label="PM"><svg class="i" style="fill:currentColor"><use href="#i-star"/></svg></button>
+      <button class="chip" data-f="fav"><svg class="i"><use href="#i-heart"/></svg>المفضلة</button>
       <button class="chip" data-f="recent"><svg class="i"><use href="#i-clock"/></svg>الأخير</button>
       <button class="chip" data-f="missing"><svg class="i"><use href="#i-inbox"/></svg>مش موجود</button>
     </div>
@@ -259,7 +270,7 @@ mark{background:#fff2b8;color:inherit;border-radius:3px;padding:0 1px}
     <button class="x" id="mClose" aria-label="إغلاق"><svg class="i"><use href="#i-x"/></svg></button>
     <div class="head">
       <div class="pimg" id="mImg"></div>
-      <div style="min-width:0"><div class="sname" id="mName"></div><div class="sen" id="mEn"></div><div class="stags" id="mTags"></div></div>
+      <div style="min-width:0"><div class="sname" id="mName"></div><div class="sen" id="mEn"></div><div class="stags" id="mTags"></div><div class="scat" id="mCat"></div></div>
     </div>
     <div class="prices" id="mPrices"></div>
     <div class="bcview" id="bcView"></div>
@@ -271,7 +282,6 @@ mark{background:#fff2b8;color:inherit;border-radius:3px;padding:0 1px}
     </div>
     <div class="bcother" id="bcOther"></div>
     <div class="acts" id="mActs"></div>
-    <div class="tip">قرّب الشاشة من الماسح • لو ماقراش جرّب باركود تاني من اللي فوق أو غيّر لـ«خطي»</div>
   </div>
 </div>
 <div class="toast" id="toast"></div>
@@ -281,14 +291,15 @@ mark{background:#fff2b8;color:inherit;border-radius:3px;padding:0 1px}
 <script>
 'use strict';
 const $=s=>document.querySelector(s);
-const VER='٥';
+const VER='٩';
 let ITEMS=[],IMGBASE='',BUILT='',HAY=[],bcMap=new Map(),codeIndex=new Map(),itemBc=[],nExp=0,nGlob=0;
 const LS={get:(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}},set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 let fav=new Set(LS.get('fav',[])),recent=LS.get('recent',[]),missing=LS.get('missing',[]);
 let filter='all',lastQ='',lastRes=[],shown=0;
 const PAGE=40;
 // item fields
-const F={code:0,en:1,ar:2,price:3,img:4,type:5,op:6,dp:7,vat:8};
+const F={code:0,en:1,ar:2,price:3,img:4,type:5,op:6,dp:7,vat:8,brand:9,cat:10,sl:11,pm:12};
+let CATS=[],nSL=0,nPM=0;
 const VAT=1.15;
 
 /* ---------- text normalisation ---------- */
@@ -312,18 +323,22 @@ async function load(){
     ltxt.textContent='جاري التجهيز…';fill.style.width='85%';
     await new Promise(r=>setTimeout(r,20));
     const b=JSON.parse(txt);
-    ITEMS=b.items;IMGBASE=b.imgBase||'';BUILT=b.built||'';
+    ITEMS=b.items;IMGBASE=b.imgBase||'';BUILT=b.built||'';CATS=b.cats||[];
     HAY=new Array(ITEMS.length);
     for(let i=0;i<ITEMS.length;i++){const it=ITEMS[i];codeIndex.set(it[0],i);
-      HAY[i]=' '+norm(it[2])+' '+(it[1]!==it[2]?norm(it[1])+' ':'')+it[0]+' ';
+      HAY[i]=' '+norm(it[2])+' '+(it[1]!==it[2]?norm(it[1])+' ':'')+(it[9]?norm(it[9])+' ':'')+it[0]+' ';
+      if(it[11])nSL++;if(it[12])nPM++;
       if(it[5]==='e')nExp++;else if(it[5]==='g')nGlob++;}
     bcMap=new Map(b.bc);
     itemBc=Array.from({length:ITEMS.length},()=>[]);
     for(const p of b.bc){if(itemBc[p[1]])itemBc[p[1]].push(p[0]);}
-    for(const a of itemBc)a.sort((x,y)=>bcRank(x)-bcRank(y)||x.length-y.length);
+    // internal barcodes are numbered in order of creation: show the newest first (older ones may be expired)
+    for(const a of itemBc)a.sort((x,y)=>bcRank(x)-bcRank(y)||x.length-y.length||(x<y?1:x>y?-1:0));
     fill.style.width='100%';
-    $('#subcount').textContent=ITEMS.length.toLocaleString('ar-EG')+' صنف • '+(nExp+nGlob).toLocaleString('ar-EG')+' أونلاين';
+    $('#subcount').textContent=ITEMS.length.toLocaleString('ar-EG')+' صنف';
     $('#loader').style.opacity=0;setTimeout(()=>$('#loader').remove(),350);
+    // prepare the misspelling index in the background so the first typo search is quick
+    setTimeout(()=>{if(!WORDS)wordIndex();},1500);
     const p=new URLSearchParams(location.search).get('q');
     if(p){$('#q').value=p;onInput();}else render();
   }catch(e){ltxt.textContent='تعذّر تحميل الداتا — افتح الصفحة تاني وانت متصل بالنت';console.error(e);}
@@ -360,7 +375,7 @@ function search(q){
   }
   if(res.length){
     // sort by score, then name length
-    res.sort((a,b)=>(a&63)-(b&63)||HAY[a>>6].length-HAY[b>>6].length);
+    res.sort((a,b)=>(a&63)-(b&63)||(ITEMS[b>>6][12]||0)-(ITEMS[a>>6][12]||0)||HAY[a>>6].length-HAY[b>>6].length);
     return res.map(x=>x>>6);
   }
   return fuzzy(toks);
@@ -377,28 +392,36 @@ function th(t){const n=t.length;return n<=3?0:n<=5?1:n<=8?2:3;}
 // Arabic spelling skeleton: drop long vowels so «بندول» ≈ «بانادول»
 const isAr=s=>/[ء-ي]/.test(s);
 const skel=s=>s.replace(/[اويىءه]/g,'');
+let WORDS=null;
+function wordIndex(){
+  // unique words -> items that contain them (built once, on the first misspelled search)
+  WORDS=new Map();
+  for(let i=0;i<HAY.length;i++){for(const w of HAY[i].trim().split(' ')){if(!w)continue;let a=WORDS.get(w);if(!a)WORDS.set(w,a=[]);if(a[a.length-1]!==i)a.push(i);}}
+  WORDS=[...WORDS].map(([w,a])=>[w,skel(w),a]);
+}
 function fuzzy(toks){
-  const T=toks.map(t=>[t,th(t),isAr(t)&&skel(t).length>=3?skel(t):'']);const out=[];
-  for(let i=0;i<HAY.length;i++){
-    const words=HAY[i].trim().split(' ');let total=0,ok=true;
-    for(const [t,m,sk] of T){
-      let best=Math.max(m,sk?1:0)+1;
-      for(const w of words){
-        if(w.includes(t)){best=0;break;}
-        if(sk&&best>1&&skel(w).startsWith(sk)){best=1;continue;}
-        if(m===0)continue;
-        let d=lev(t,w,m);
-        if(w.length>t.length){const d2=lev(t,w.slice(0,t.length),m);if(d2<d)d=d2;}
-        if(d<best){best=d;}
-      }
-      if(best>Math.max(m,sk?1:0)){ok=false;break;}total+=best;
+  if(!WORDS)wordIndex();
+  let acc=null;
+  for(const t of toks){
+    const m=th(t),sk=isAr(t)&&skel(t).length>=3?skel(t):'',lim=Math.max(m,sk?1:0);
+    const best=new Map();
+    for(const [w,ws,items] of WORDS){
+      let d;
+      if(w.includes(t))d=0;
+      else if(sk&&ws.startsWith(sk))d=1;
+      else if(m===0)continue;
+      else{d=lev(t,w,m);if(w.length>t.length){const d2=lev(t,w.slice(0,t.length),m);if(d2<d)d=d2;}}
+      if(d>lim)continue;
+      for(const i of items){const o=best.get(i);if(o===undefined||d<o)best.set(i,d);}
     }
-    if(ok)out.push([i,total]);
+    if(acc===null)acc=best;
+    else{const nx=new Map();for(const [i,d] of best){const o=acc.get(i);if(o!==undefined)nx.set(i,o+d);}acc=nx;}
+    if(!acc.size)return[];
   }
-  if(!out.length)return[];
-  out.sort((a,b)=>a[1]-b[1]||HAY[a[0]].length-HAY[b[0]].length);
-  const lim=out[0][1]+1; // keep only the closest matches, drop noise
-  return out.filter(x=>x[1]<=lim).map(x=>x[0]);
+  const out=[...acc];
+  out.sort((a,b)=>a[1]-b[1]||(ITEMS[b[0]][12]||0)-(ITEMS[a[0]][12]||0)||HAY[a[0]].length-HAY[b[0]].length);
+  const cut=out[0][1]+1; // keep only the closest matches, drop noise
+  return out.filter(x=>x[1]<=cut).map(x=>x[0]);
 }
 
 /* ---------- render ---------- */
@@ -417,22 +440,23 @@ function priceInfo(it){
   return{v:'',src:'',vat,on,disc};
 }
 function row(l,v,old){return `<div class="pbox" style="grid-column:1/-1;display:flex;justify-content:space-between;align-items:center"><div class="l">${l}</div><div class="v" style="font-size:17px">${v} <small>ر.س</small>${old?`<s>${old}</s>`:''}</div></div>`;}
+function pmTag(p){return p?`<span class="pmi${p===3?' top':''}"><svg class="i"><use href="#i-star"/></svg></span>`:'';}
 function tagHTML(t){return t==='e'?'<span class="tag e"><svg class="i"><use href="#i-bolt"/></svg>إكسبريس</span>':t==='g'?'<span class="tag g"><svg class="i"><use href="#i-globe"/></svg>جلوبال</span>':'';}
 function card(idx){
   const it=ITEMS[idx],pi=priceInfo(it),on=fav.has(it[0]);
-  const d=document.createElement('div');d.className='card';d.dataset.idx=idx;
+  const d=document.createElement('div');d.className='card'+(it[F.pm]===3?' pm3':it[F.pm]?' pm':'');d.dataset.idx=idx;
   const im=it[F.img];
   d.innerHTML=`<div class="thumb${im?'':' none'}">${im?`<img loading="lazy" decoding="async" alt="" src="${imgUrl(im,160)}" onload="this.classList.add('ok')" onerror="this.parentNode.classList.add('none');this.replaceWith(document.querySelector('#tplbox').content.cloneNode(true))">`:'<svg class="i"><use href="#i-box"/></svg>'}</div>
   <div class="info">
     <div class="nm">${hl(it[2]||it[1])}</div>
     ${it[1]&&it[1]!==it[2]?`<div class="en">${hl(it[1])}</div>`:''}
     <div class="row">
-      ${pi.v?`<span class="price">${pi.v}<small>ر.س</small>${pi.src==='o'?'<small>أونلاين</small>':pi.vat===1?'<small>بالضريبة</small>':''}</span>`:'<span class="price na">بدون سعر</span>'}
-      ${tagHTML(it[F.type])}
+      ${pi.v?`<span class="price">${pi.v}<small>ر.س</small></span>`:'<span class="price na">—</span>'}
+      ${pmTag(it[F.pm])}${tagHTML(it[F.type])}
       <span class="code">${esc(it[0])}</span>
     </div>
   </div>
-  <button class="star${on?' on':''}" data-star="${it[0]}" aria-label="مفضلة"><svg class="i"><use href="#i-star"/></svg></button>`;
+  <button class="star${on?' on':''}" data-star="${it[0]}" aria-label="مفضلة"><svg class="i"><use href="#i-heart"/></svg></button>`;
   return d;
 }
 let HLT=[];
@@ -446,26 +470,21 @@ function hl(s){
 function applyType(list){
   if(filter==='express')return list.filter(i=>ITEMS[i][F.type]==='e');
   if(filter==='global')return list.filter(i=>ITEMS[i][F.type]==='g');
+  if(filter==='pm')return list.filter(i=>ITEMS[i][F.pm]);
   return list;
 }
 function hint(icon,title,sub){return `<div class="hint"><div class="ic"><svg class="i"><use href="#i-${icon}"/></svg></div><b>${title}</b><br>${sub}</div>`;}
 function startScreen(){
   return `<div class="hint"><div class="ic"><svg class="i"><use href="#i-search"/></svg></div>
-  <b>دوّر على أي صنف</b><br>اكتب جزء من الاسم بالعربي أو الإنجليزي، أو الكود، أو امسح الباركود.
-  <div class="tips">
-    <div><b>غلطة إملائية؟</b>عادي، «psnadol» هتجيب بنادول.</div>
-    <div><b>كلمتين</b>«بنادول اكسترا» أدق من كلمة واحدة.</div>
-    <div><b>دوس على الصنف</b>يطلع الباركود كبير تعمله سكان.</div>
-    <div><b>إكسبريس / جلوبال</b>فلتر النتايج من فوق.</div>
-  </div>
-  <div class="ver">إصدار ${VER}${BUILT?' • بيانات النهدي أونلاين: '+BUILT:''}</div></div>`;
+  اكتب الاسم أو الكود أو امسح الباركود
+  <div class="ver">${BUILT?'تحديث الأسعار: '+BUILT:''}</div></div>`;
 }
 function render(){
   const main=$('#main');main.innerHTML='';shown=0;
   $('#exportMissing').style.display=filter==='missing'&&missing.length?'inline-flex':'none';
   const q=$('#q').value.trim();
   if(filter==='missing'){
-    if(!missing.length){main.innerHTML=hint('inbox','القائمة فاضية','أي صنف تدوّر عليه وماتلاقيهوش، سجّله هنا عشان تبلّغ عنه.');return;}
+    if(!missing.length){main.innerHTML=hint('inbox','القائمة فاضية','');return;}
     main.insertAdjacentHTML('beforeend',`<div class="count"><span><b>${missing.length}</b> صنف مش موجود</span></div>`);
     missing.slice().reverse().forEach(m=>{main.insertAdjacentHTML('beforeend',`<div class="card" style="cursor:default"><div class="info">
       <div class="nm" style="direction:ltr;text-align:right">${esc(m.q)}</div><div class="en">${new Date(m.t).toLocaleString('ar-EG')}</div>
@@ -475,11 +494,16 @@ function render(){
   }
   let list;
   if(filter==='fav'){list=[...fav].map(c=>codeIndex.get(c)).filter(x=>x!=null);
-    if(!list.length){main.innerHTML=hint('star','مفيش مفضلة لسه','دوس على النجمة في أي صنف عشان يتحفظ هنا.');return;}}
+    if(!list.length){main.innerHTML=hint('heart','مفيش مفضلة','');return;}}
   else if(filter==='recent'){list=recent.map(c=>codeIndex.get(c)).filter(x=>x!=null);
-    if(!list.length){main.innerHTML=hint('clock','مفيش أصناف فتحتها','آخر الأصناف اللي فتحتها هتظهر هنا.');return;}}
+    if(!list.length){main.innerHTML=hint('clock','مفيش أصناف','');return;}}
   else{
-    if(!q){main.innerHTML=filter==='all'?startScreen():hint(filter==='express'?'bolt':'globe',filter==='express'?`${nExp.toLocaleString('ar-EG')} صنف إكسبريس`:`${nGlob.toLocaleString('ar-EG')} صنف جلوبال`,'اكتب اسم الصنف وهتظهر لك النتايج من النوع ده بس.');return;}
+    if(!q&&filter==='pm'){
+      list=[];for(let i=0;i<ITEMS.length;i++)if(ITEMS[i][12])list.push(i);
+      list.sort((a,b)=>ITEMS[b][12]-ITEMS[a][12]||HAY[a].length-HAY[b].length);
+    }else if(!q){const H={express:['bolt',`${nExp.toLocaleString('ar-EG')} صنف إكسبريس`],global:['globe',`${nGlob.toLocaleString('ar-EG')} صنف جلوبال`]};
+      main.innerHTML=filter==='all'?startScreen():hint(H[filter][0],H[filter][1],'');return;}
+    else{
     if(q!==lastQ){lastRes=search(q);lastQ=q;}
     list=applyType(lastRes);
     if(!list.length){
@@ -487,11 +511,12 @@ function render(){
       main.innerHTML=`<div class="notfound"><svg class="i" style="width:40px;height:40px;color:var(--mut2)"><use href="#i-inbox"/></svg>
         <h3>${lastRes.length?'مفيش نتايج من النوع ده':'الصنف مش موجود'}</h3><p>${esc(q)}</p>
         ${lastRes.length?'<button class="btn ghost" id="toAll">اعرض كل الأنواع</button>':`<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
-        <button class="btn" id="recMiss">سجّله في «مش موجود»</button>
-        ${isNum?`<a class="btn ghost" target="_blank" rel="noopener" href="https://www.nahdionline.com/ar-sa/x/pdp/${encodeURIComponent(q)}"><svg class="i"><use href="#i-ext"/></svg>جرّب النهدي أونلاين</a>`:''}</div>`}</div>`;
+        <button class="btn" id="recMiss">سجّله</button>
+        ${isNum?`<a class="btn ghost" target="_blank" rel="noopener" href="https://www.nahdionline.com/ar-sa/x/pdp/${encodeURIComponent(q)}"><svg class="i"><use href="#i-ext"/></svg>النهدي أونلاين</a>`:''}</div>`}</div>`;
       const r=$('#recMiss');if(r)r.onclick=()=>{addMissing(q);toast('اتسجّل في «مش موجود»');};
       const a=$('#toAll');if(a)a.onclick=()=>setFilter('all');
       return;
+    }
     }
   }
   main.insertAdjacentHTML('beforeend',`<div class="count"><span><b>${list.length.toLocaleString('ar-EG')}</b> نتيجة</span><span></span></div>`);
@@ -545,23 +570,25 @@ function openItem(idx){
   const im=it[F.img];
   $('#mImg').innerHTML=im?`<img alt="" src="${imgUrl(im,400)}" onerror="this.replaceWith(document.querySelector('#tplbox').content.cloneNode(true))">`:'<svg class="i"><use href="#i-box"/></svg>';
   const pi=priceInfo(it);
-  let tags=tagHTML(it[F.type]);if(pi.disc)tags+=`<span class="tag o">عرض أونلاين ${pi.disc} ر.س</span>`;
+  let tags=tagHTML(it[F.type]);
+  if(it[F.pm])tags=pmTag(it[F.pm])+tags;
   $('#mTags').innerHTML=tags;
+  const cat=CATS[it[F.cat]];
+  const [cDiv,cSub]=(cat||'').split('|');
+  $('#mCat').innerHTML=[cDiv?esc(cDiv):'',it[F.brand]?`<b dir="ltr">${esc(it[F.brand])}</b>`:'',cSub?`<span dir="ltr">${esc(cSub)}</span>`:''].filter(Boolean).join(' • ');
   const store=fmt(it[F.price]);
   let mainL='السعر',extra='';
   if(pi.src==='s'){
-    if(pi.vat===1){mainL='السعر شامل الضريبة';extra=row('قبل الضريبة (ملف الأصناف)',pi.pre);}
-    else if(pi.vat===0){mainL='السعر (دواء • بدون ضريبة)';}
-    else{mainL='سعر ملف الأصناف';extra=row('لو الصنف مش دواء • شامل الضريبة 15%',fmt(pi.pre*VAT));}
-    if(pi.on&&pi.on!==pi.v)extra+=row('النهدي أونلاين (شامل الضريبة)',pi.disc||pi.on,pi.disc?pi.on:'');
-  }else if(pi.src==='o'){mainL='النهدي أونلاين (شامل الضريبة)';if(pi.disc)extra=row('عرض أونلاين',pi.disc,pi.on);}
+    if(pi.vat===1){mainL='شامل الضريبة';extra=row('قبل الضريبة',pi.pre);}
+    if(pi.on&&pi.on!==pi.v)extra+=row('أونلاين',pi.disc||pi.on,pi.disc?pi.on:'');
+  }else if(pi.src==='o'){mainL='أونلاين';if(pi.disc)extra=row('عرض',pi.disc,pi.on);}
   $('#mPrices').innerHTML=
-    `<div class="pbox main"><div class="l">${mainL}</div><div class="v">${pi.v?pi.v+' <small>ر.س</small>':'<small>غير مسجّل</small>'}</div></div>`+
-    `<div class="pbox code" data-copy="${esc(it[0])}"><div class="l">كود الصنف</div><div class="v">${esc(it[0])}</div></div>`+extra;
+    `<div class="pbox main"><div class="l">${mainL}</div><div class="v">${pi.v?pi.v+' <small>ر.س</small>':'<small>—</small>'}</div></div>`+
+    `<div class="pbox code" data-copy="${esc(it[0])}"><div class="l">الكود</div><div class="v">${esc(it[0])}</div></div>`+extra;
   $('#bcOther').innerHTML=list.length>1?list.map((b,i)=>`<button class="bcchip${i?'':' on'}" data-i="${i}">${b}</button>`).join(''):'';
   $('#mActs').innerHTML=`<button class="btn light" data-copy="${esc(list[0])}" id="cpBc"><svg class="i"><use href="#i-copy"/></svg>نسخ الباركود</button>`+
     (it[F.type]||im?`<a class="btn" target="_blank" rel="noopener" href="https://www.nahdionline.com/ar-sa/x/pdp/${esc(it[0])}"><svg class="i"><use href="#i-ext"/></svg>النهدي أونلاين</a>`:
-    `<button class="btn light" data-star2="${esc(it[0])}"><svg class="i"><use href="#i-star"/></svg>${fav.has(it[0])?'شيله من المفضلة':'ضيفه للمفضلة'}</button>`);
+    `<button class="btn light" data-star2="${esc(it[0])}"><svg class="i"><use href="#i-heart"/></svg>${fav.has(it[0])?'شيله من المفضلة':'المفضلة'}</button>`);
   setMode(bc.mode);
   pushRecent(it[0]);
   $('#modal').classList.add('show');history.pushState({m:1},'');
