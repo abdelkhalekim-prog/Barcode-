@@ -174,6 +174,21 @@ mark{background:#fff2b8;color:inherit;border-radius:3px;padding:0 1px}
 .seg button{flex:1;border:0;background:transparent;padding:9px;border-radius:9px;font:700 14px var(--font);color:var(--mut);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
 .seg button svg{width:16px;height:16px}
 .seg button.active{background:var(--blue);color:#fff}
+.bcwrap{display:flex;align-items:center;gap:6px;justify-content:center;margin:0 auto 6px;max-width:400px}
+.bcwrap .bcview{flex:1;margin:0;touch-action:pan-y;user-select:none}
+.bnav{width:40px;height:72px;border:0;border-radius:12px;background:var(--blue-soft);color:var(--blue2);display:grid;place-items:center;cursor:pointer;flex:0 0 auto}
+.bnav svg{width:24px;height:24px;stroke-width:2.6}
+.bnav:disabled{opacity:.3}
+.bcbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 auto 10px;max-width:330px}
+.bcbar button{border:1.5px solid var(--line);background:#fff;color:var(--txt);border-radius:10px;padding:7px 12px;font:700 13.5px var(--font);display:flex;align-items:center;gap:5px;cursor:pointer}
+.bcbar button svg{width:15px;height:15px}
+#bcAuto svg{fill:currentColor;stroke:none}
+#bcAuto.on{background:var(--blue);border-color:var(--blue);color:#fff}
+#bcGood.on{background:var(--green-soft);border-color:var(--green);color:var(--green)}
+#bcPos{font:700 15px var(--font);color:var(--mut)}
+.bcview.swl{animation:swl .18s}.bcview.swr{animation:swr .18s}
+@keyframes swl{from{transform:translateX(24px);opacity:.3}to{transform:none;opacity:1}}
+@keyframes swr{from{transform:translateX(-24px);opacity:.3}to{transform:none;opacity:1}}
 .bcother{display:flex;gap:7px;overflow-x:auto;padding-bottom:6px;margin-bottom:10px;scrollbar-width:none}
 .bcother::-webkit-scrollbar{display:none}
 .bcchip{flex:0 0 auto;border:1.5px solid var(--line);background:#fff;color:var(--txt);border-radius:10px;padding:7px 11px;font:600 12px var(--latin);cursor:pointer;direction:ltr}
@@ -217,6 +232,11 @@ mark{background:#fff2b8;color:inherit;border-radius:3px;padding:0 1px}
   <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14"/></symbol>
   <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></symbol>
   <symbol id="i-heart" viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/></symbol>
+  <symbol id="i-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+  <symbol id="i-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4v16l13-8z"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><path d="M7 4h3v16H7zM14 4h3v16h-3z"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
   <symbol id="i-pill" viewBox="0 0 24 24"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7zM8.5 8.5l7 7"/></symbol>
 </svg>
 
@@ -273,14 +293,22 @@ mark{background:#fff2b8;color:inherit;border-radius:3px;padding:0 1px}
       <div style="min-width:0"><div class="sname" id="mName"></div><div class="sen" id="mEn"></div><div class="stags" id="mTags"></div><div class="scat" id="mCat"></div></div>
     </div>
     <div class="prices" id="mPrices"></div>
-    <div class="bcview" id="bcView"></div>
+    <div class="bcwrap">
+      <button class="bnav" id="bcPrev" aria-label="السابق"><svg class="i"><use href="#i-right"/></svg></button>
+      <div class="bcview" id="bcView"></div>
+      <button class="bnav" id="bcNext" aria-label="التالي"><svg class="i"><use href="#i-left"/></svg></button>
+    </div>
     <div class="bcnum" id="bcNum"></div>
+    <div class="bcbar" id="bcBar">
+      <button id="bcAuto"><svg class="i"><use href="#i-play"/></svg><span>تلقائي</span></button>
+      <span id="bcPos"></span>
+      <button id="bcGood"><svg class="i"><use href="#i-check"/></svg><span>اشتغل</span></button>
+    </div>
     <div class="seg">
       <button class="active" id="tgQR"><svg class="i"><use href="#i-qr"/></svg>QR</button>
       <button id="tg1D"><svg class="i"><use href="#i-bars"/></svg>خطي</button>
       <button id="tgBright"><svg class="i"><use href="#i-sun"/></svg>سطوع</button>
     </div>
-    <div class="bcother" id="bcOther"></div>
     <div class="acts" id="mActs"></div>
   </div>
 </div>
@@ -291,9 +319,10 @@ mark{background:#fff2b8;color:inherit;border-radius:3px;padding:0 1px}
 <script>
 'use strict';
 const $=s=>document.querySelector(s);
-const VER='١٠';
+const VER='١١';
 let ITEMS=[],IMGBASE='',BUILT='',HAY=[],bcMap=new Map(),codeIndex=new Map(),itemBc=[],nExp=0,nGlob=0;
 const LS={get:(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}},set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+let GOOD=LS.get('good',{});
 let fav=new Set(LS.get('fav',[])),recent=LS.get('recent',[]),missing=LS.get('missing',[]);
 let filter='all',lastQ='',lastRes=[],shown=0;
 const PAGE=40;
@@ -563,7 +592,11 @@ $('#exportMissing').onclick=()=>{
 let bc={idx:-1,list:[],cur:0,mode:LS.get('bcmode','qr')};
 function openItem(idx){
   const it=ITEMS[idx];if(!it)return;
-  const list=(itemBc[idx]||[]).slice(0,20); // newest 20 only (all are still used for scanning lookup)if(!list.length)list.push(it[0]);
+  // newest 20 only (older ones are still used when scanning); a barcode marked as working comes first
+  let list=(itemBc[idx]||[]).slice(0,20);
+  const good=GOOD[it[0]];
+  if(good){list=[good,...list.filter(b=>b!==good)].slice(0,20);}
+  if(!list.length)list.push(it[0]);
   bc.idx=idx;bc.list=list;bc.cur=0;
   $('#mName').textContent=it[2]||it[1];
   $('#mEn').textContent=it[1]&&it[1]!==it[2]?it[1]:'';
@@ -585,7 +618,8 @@ function openItem(idx){
   $('#mPrices').innerHTML=
     `<div class="pbox main"><div class="l">${mainL}</div><div class="v">${pi.v?pi.v+' <small>ر.س</small>':'<small>—</small>'}</div></div>`+
     `<div class="pbox code" data-copy="${esc(it[0])}"><div class="l">الكود</div><div class="v">${esc(it[0])}</div></div>`+extra;
-  $('#bcOther').innerHTML=list.length>1?list.map((b,i)=>`<button class="bcchip${i?'':' on'}" data-i="${i}">${b}</button>`).join(''):'';
+  stopAuto();
+  const many=list.length>1;['#bcPrev','#bcNext','#bcAuto'].forEach(x=>$(x).style.visibility=many?'visible':'hidden');
   $('#mActs').innerHTML=`<button class="btn light" data-copy="${esc(list[0])}" id="cpBc"><svg class="i"><use href="#i-copy"/></svg>نسخ الباركود</button>`+
     (it[F.type]||im?`<a class="btn" target="_blank" rel="noopener" href="https://www.nahdionline.com/ar-sa/x/pdp/${esc(it[0])}"><svg class="i"><use href="#i-ext"/></svg>النهدي أونلاين</a>`:
     `<button class="btn light" data-star2="${esc(it[0])}"><svg class="i"><use href="#i-heart"/></svg>${fav.has(it[0])?'شيله من المفضلة':'المفضلة'}</button>`);
@@ -603,15 +637,37 @@ function draw(){
       try{JsBarcode(s,v,{format:fmt13?'EAN13':'CODE128',width:2.4,height:120,displayValue:false,margin:8});}
       catch(e){JsBarcode(s,v,{format:'CODE128',width:2.4,height:120,displayValue:false,margin:8});}}
   }catch(e){view.innerHTML='<div style="color:#b91c1c;font-weight:800">تعذّر عرض الباركود</div>';}
-  document.querySelectorAll('.bcchip').forEach(c=>c.classList.toggle('on',+c.dataset.i===bc.cur));
+  $('#bcPos').textContent=bc.list.length>1?(bc.cur+1)+' من '+bc.list.length:'';
+  $('#bcGood').classList.toggle('on',GOOD[ITEMS[bc.idx][0]]===v);
 }
 function setMode(m){bc.mode=m;LS.set('bcmode',m);$('#tgQR').classList.toggle('active',m==='qr');$('#tg1D').classList.toggle('active',m!=='qr');draw();}
 $('#tgQR').onclick=()=>setMode('qr');$('#tg1D').onclick=()=>setMode('1d');
 $('#tgBright').onclick=function(){$('#modal').classList.toggle('bright',this.classList.toggle('active'));};
-$('#bcOther').onclick=e=>{const c=e.target.closest('.bcchip');if(c){bc.cur=+c.dataset.i;draw();}};
+// move between barcodes: arrows, swipe, keyboard, or automatic cycling
+function step(d,manual){
+  if(bc.list.length<2)return;
+  if(manual)stopAuto();
+  bc.cur=(bc.cur+d+bc.list.length)%bc.list.length;draw();
+  const v=$('#bcView');v.classList.remove('swl','swr');void v.offsetWidth;v.classList.add(d>0?'swl':'swr');
+}
+$('#bcNext').onclick=()=>step(1,true);$('#bcPrev').onclick=()=>step(-1,true);
+let tx=null;
+$('#bcView').addEventListener('touchstart',e=>{tx=e.touches[0].clientX;},{passive:true});
+$('#bcView').addEventListener('touchend',e=>{if(tx==null)return;const dx=e.changedTouches[0].clientX-tx;tx=null;
+  if(Math.abs(dx)>40)step(dx<0?1:-1,true);},{passive:true});
+addEventListener('keydown',e=>{if(!$('#modal').classList.contains('show'))return;
+  if(e.key==='ArrowLeft')step(1,true);else if(e.key==='ArrowRight')step(-1,true);});
+let autoT=null;
+function stopAuto(){clearInterval(autoT);autoT=null;$('#bcAuto').classList.remove('on');$('#bcAuto use').setAttribute('href','#i-play');}
+$('#bcAuto').onclick=()=>{if(autoT){stopAuto();return;}
+  $('#bcAuto').classList.add('on');$('#bcAuto use').setAttribute('href','#i-pause');autoT=setInterval(()=>step(1,false),1500);};
+// remember the barcode that scanned fine, so it shows first next time
+$('#bcGood').onclick=()=>{const code=ITEMS[bc.idx][0],v=bc.list[bc.cur];stopAuto();
+  if(GOOD[code]===v){delete GOOD[code];}else{GOOD[code]=v;toast('هيظهر الأول بعد كده');}
+  LS.set('good',GOOD);draw();};
 $('#sheet').addEventListener('click',e=>{const cp=e.target.closest('[data-copy]');if(cp)copy(cp.dataset.copy);
   const s=e.target.closest('[data-star2]');if(s){const c=s.dataset.star2;fav.has(c)?fav.delete(c):fav.add(c);LS.set('fav',[...fav]);toast(fav.has(c)?'اتضاف للمفضلة':'اتشال من المفضلة');openItem(bc.idx);history.back();}});
-function closeModal(){if($('#modal').classList.contains('show')){$('#modal').classList.remove('show','bright');$('#tgBright').classList.remove('active');
+function closeModal(){if($('#modal').classList.contains('show')){stopAuto();$('#modal').classList.remove('show','bright');$('#tgBright').classList.remove('active');
   if(filter==='recent')render();}}
 $('#mClose').onclick=()=>history.back();
 $('#modal').addEventListener('click',e=>{if(e.target.id==='modal')history.back();});
