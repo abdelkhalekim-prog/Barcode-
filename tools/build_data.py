@@ -1,0 +1,36 @@
+#!/usr/bin/env python3
+"""Merge the item master with Nahdi Online data into data.pack (v2).
+items: [code, en, ar, price, img, type, online_price, online_discount_price]
+  type: 'e' express, 'g' global, '' unknown/not online
+"""
+import sys, json, gzip
+src, imgf, onl, out = sys.argv[1:5]
+d = json.loads(gzip.open(src).read())
+img = json.load(open(imgf))
+PRE = 'https://ecombe.nahdionline.com/media/catalog/product/'
+on = {}
+for line in open(onl, encoding='utf-8'):
+    r = json.loads(line); on[r['s']] = r
+def num(v):
+    return ('%g' % v) if isinstance(v, (int, float)) else ''
+items = []
+stats = dict(img=0, e=0, g=0, filled=0)
+for it in d['items']:
+    code, en, ar, price = it[:4]
+    im = img.get(code, '')
+    if im.startswith(PRE): im = im[len(PRE):]
+    r = on.get(code, {})
+    t = {'express': 'e', 'global': 'g'}.get(r.get('g', ''), '')
+    op = num(r.get('p')) if 'p' in r else ''
+    dp = num(r.get('d')) if 'd' in r else ''
+    try: has = float(price or 0) > 0
+    except ValueError: has = False
+    if not has and op: stats['filled'] += 1
+    if im: stats['img'] += 1
+    if t: stats[t] += 1
+    items.append([code, en, ar, price if has else '', im, t, op, dp])
+pack = {'v': 2, 'built': __import__('datetime').date.today().isoformat(), 'imgBase': PRE,
+        'items': items, 'bc': d['bc']}
+with gzip.open(out, 'wt', encoding='utf-8', compresslevel=9) as f:
+    json.dump(pack, f, ensure_ascii=False, separators=(',', ':'))
+print(stats, 'online records', len(on))
