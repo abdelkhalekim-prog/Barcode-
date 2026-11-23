@@ -11,9 +11,8 @@ pmf = sys.argv[6] if len(sys.argv) > 6 else ''
 pm = json.load(open(pmf)) if pmf else {}
 
 def tier(x):
-    # product mix level only (the multiplier itself changes monthly and is never shipped)
-    if x is None: return 0
-    return 3 if x >= 10 else 2 if x >= 8 else 1
+    # productmix.json holds only the level (3 = top, 2, 1); the monthly multiplier is never stored
+    return x or 0
 DIV = {'WELLNESS': 'صحة وعافية', 'BEAUTY': 'تجميل', 'PERSONAL CARE': 'عناية شخصية', 'MOM AND BABY': 'الأم والطفل', 'MEDICINE': 'أدوية'}
 NOT_MEDICINE = {'BEAUTY', 'PERSONAL CARE', 'MOM AND BABY'}
 cats, catix = [], {}
