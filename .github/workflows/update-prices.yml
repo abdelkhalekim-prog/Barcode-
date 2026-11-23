@@ -1,0 +1,49 @@
+name: تحديث الأسعار من النهدي أونلاين
+
+# Every Monday at 06:07 Riyadh time (03:07 UTC). Can also be run by hand from the Actions tab.
+on:
+  schedule:
+    - cron: '7 3 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-prices
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: الصور وقائمة الأصناف من خريطة الموقع
+        working-directory: tools
+        run: python sitemap.py
+
+      - name: الأسعار وإكسبريس/جلوبال (بحد أقصى 5 ساعات)
+        working-directory: tools
+        run: python enrich.py ../master.pack skus.json new.jsonl 6 300
+
+      - name: بناء ملف الداتا
+        working-directory: tools
+        run: |
+          python merge.py online.jsonl new.jsonl
+          python build_data.py ../master.pack img.json online.jsonl ../data.pack
+          sed -i -E "s/const CACHE='asnaf-v5[^']*';/const CACHE='asnaf-v5-$(date +%Y%m%d)';/" ../sw.js
+
+      - name: حفظ ونشر
+        run: |
+          git config user.name "nahdi-prices-bot"
+          git config user.email "nahdi-prices-bot@users.noreply.github.com"
+          git add data.pack sw.js tools/online.jsonl tools/img.json
+          git commit -m "تحديث الأسعار من النهدي أونلاين $(date +%Y-%m-%d)" || { echo "مفيش تغيير"; exit 0; }
+          git pull --rebase origin main
+          git push origin HEAD:main

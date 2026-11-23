@@ -7,6 +7,7 @@ import sys, json, gzip, re, time, urllib.request, concurrent.futures as cf, thre
 
 pack, skus_file, out = sys.argv[1], sys.argv[2], sys.argv[3]
 workers = int(sys.argv[4]) if len(sys.argv) > 4 else 5
+budget = float(sys.argv[5]) * 60 if len(sys.argv) > 5 else 1e12  # minutes
 d = json.loads(gzip.open(pack).read())
 online = set(json.load(open(skus_file)))
 done = set()
@@ -21,16 +22,18 @@ def noprice(x):
     except ValueError: return True
 
 todo = [x[0] for x in d['items'] if x[0] in online and x[0] not in done]
-todo.sort(key=lambda s: 0 if noprice(d['items'][0]) else 0)
 np_codes = {x[0] for x in d['items'] if noprice(x)}
 todo.sort(key=lambda s: 0 if s in np_codes else 1)
 print('todo', len(todo), 'noprice first', len([s for s in todo if s in np_codes]), flush=True)
 
 UA = 'Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Chrome/120 Mobile Safari/537.36'
 lock = threading.Lock()
+t0 = time.time()
 fo = open(out, 'a', encoding='utf-8')
 
 def fetch(sku):
+    if time.time() - t0 > budget:
+        return None
     url = f'https://www.nahdionline.com/ar-sa/x/pdp/{sku}'
     for attempt in range(3):
         try:
@@ -61,7 +64,7 @@ def fetch(sku):
             time.sleep(2 + attempt * 3)
     return None
 
-n = 0; t0 = time.time()
+n = 0
 with cf.ThreadPoolExecutor(workers) as ex:
     for rec in ex.map(fetch, todo):
         if rec is None: continue

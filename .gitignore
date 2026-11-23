@@ -1,1 +1,4 @@
 node_modules/
+tools/skus.json
+tools/new.jsonl
+__pycache__/
