@@ -305,9 +305,49 @@ function search(qr){
   // rank AND matches: earlier position first, then shorter name
   andRes.sort((a,b)=>a[1]-b[1]||a[2]-b[2]);
   let out=andRes.map(x=>x[0]);
-  // if nothing matched all tokens, fall back to suggestions matching any token
+  // if nothing matched all tokens, try fuzzy (typo-tolerant), then any-token
+  if(!out.length) out=fuzzy(tokens);
   if(!out.length) out=orRes;
   return out.slice(0,400);
+}
+function lev(a,b,max){
+  const m=a.length,n=b.length;
+  if(Math.abs(m-n)>max) return max+1;
+  let prev=new Array(n+1);for(let j=0;j<=n;j++)prev[j]=j;
+  for(let i=1;i<=m;i++){
+    const cur=new Array(n+1);cur[0]=i;let best=i;
+    const ai=a.charCodeAt(i-1);
+    for(let j=1;j<=n;j++){
+      const cost=ai===b.charCodeAt(j-1)?0:1;
+      let v=prev[j]+1;const d=cur[j-1]+1;if(d<v)v=d;const e=prev[j-1]+cost;if(e<v)v=e;
+      cur[j]=v;if(v<best)best=v;
+    }
+    if(best>max) return max+1;
+    prev=cur;
+  }
+  return prev[n];
+}
+function tokThresh(t){return t.length<=3?1:t.length<=6?2:3;}
+function fuzzy(tokens){
+  const items=DATA.items;const scored=[];
+  for(let i=0;i<items.length;i++){
+    const it=items[i];
+    const words=(norm(it[2])+' '+norm(it[1])).split(/\s+/);
+    let total=0,ok=true;
+    for(const t of tokens){
+      const th=tokThresh(t);let best=th+1;
+      for(const w of words){
+        if(!w)continue;
+        if(w.includes(t)){best=0;break;}
+        const d=lev(t,w,th);if(d<best)best=d;if(best===0)break;
+      }
+      if(best>th){ok=false;break;}
+      total+=best;
+    }
+    if(ok){scored.push([i,total,(it[2]||it[1]).length]);if(scored.length>=800)break;}
+  }
+  scored.sort((a,b)=>a[1]-b[1]||a[2]-b[2]);
+  return scored.map(x=>x[0]);
 }
 
 /* ---------- render ---------- */
