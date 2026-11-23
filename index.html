@@ -332,6 +332,8 @@ async function load(){
     fill.style.width='100%';
     $('#subcount').textContent=ITEMS.length.toLocaleString('ar-EG')+' صنف • '+(nExp+nGlob).toLocaleString('ar-EG')+' أونلاين';
     $('#loader').style.opacity=0;setTimeout(()=>$('#loader').remove(),350);
+    // prepare the misspelling index in the background so the first typo search is quick
+    setTimeout(()=>{if(!WORDS)wordIndex();},1500);
     const p=new URLSearchParams(location.search).get('q');
     if(p){$('#q').value=p;onInput();}else render();
   }catch(e){ltxt.textContent='تعذّر تحميل الداتا — افتح الصفحة تاني وانت متصل بالنت';console.error(e);}
@@ -385,28 +387,36 @@ function th(t){const n=t.length;return n<=3?0:n<=5?1:n<=8?2:3;}
 // Arabic spelling skeleton: drop long vowels so «بندول» ≈ «بانادول»
 const isAr=s=>/[ء-ي]/.test(s);
 const skel=s=>s.replace(/[اويىءه]/g,'');
+let WORDS=null;
+function wordIndex(){
+  // unique words -> items that contain them (built once, on the first misspelled search)
+  WORDS=new Map();
+  for(let i=0;i<HAY.length;i++){for(const w of HAY[i].trim().split(' ')){if(!w)continue;let a=WORDS.get(w);if(!a)WORDS.set(w,a=[]);if(a[a.length-1]!==i)a.push(i);}}
+  WORDS=[...WORDS].map(([w,a])=>[w,skel(w),a]);
+}
 function fuzzy(toks){
-  const T=toks.map(t=>[t,th(t),isAr(t)&&skel(t).length>=3?skel(t):'']);const out=[];
-  for(let i=0;i<HAY.length;i++){
-    const words=HAY[i].trim().split(' ');let total=0,ok=true;
-    for(const [t,m,sk] of T){
-      let best=Math.max(m,sk?1:0)+1;
-      for(const w of words){
-        if(w.includes(t)){best=0;break;}
-        if(sk&&best>1&&skel(w).startsWith(sk)){best=1;continue;}
-        if(m===0)continue;
-        let d=lev(t,w,m);
-        if(w.length>t.length){const d2=lev(t,w.slice(0,t.length),m);if(d2<d)d=d2;}
-        if(d<best){best=d;}
-      }
-      if(best>Math.max(m,sk?1:0)){ok=false;break;}total+=best;
+  if(!WORDS)wordIndex();
+  let acc=null;
+  for(const t of toks){
+    const m=th(t),sk=isAr(t)&&skel(t).length>=3?skel(t):'',lim=Math.max(m,sk?1:0);
+    const best=new Map();
+    for(const [w,ws,items] of WORDS){
+      let d;
+      if(w.includes(t))d=0;
+      else if(sk&&ws.startsWith(sk))d=1;
+      else if(m===0)continue;
+      else{d=lev(t,w,m);if(w.length>t.length){const d2=lev(t,w.slice(0,t.length),m);if(d2<d)d=d2;}}
+      if(d>lim)continue;
+      for(const i of items){const o=best.get(i);if(o===undefined||d<o)best.set(i,d);}
     }
-    if(ok)out.push([i,total]);
+    if(acc===null)acc=best;
+    else{const nx=new Map();for(const [i,d] of best){const o=acc.get(i);if(o!==undefined)nx.set(i,o+d);}acc=nx;}
+    if(!acc.size)return[];
   }
-  if(!out.length)return[];
+  const out=[...acc];
   out.sort((a,b)=>a[1]-b[1]||HAY[a[0]].length-HAY[b[0]].length);
-  const lim=out[0][1]+1; // keep only the closest matches, drop noise
-  return out.filter(x=>x[1]<=lim).map(x=>x[0]);
+  const cut=out[0][1]+1; // keep only the closest matches, drop noise
+  return out.filter(x=>x[1]<=cut).map(x=>x[0]);
 }
 
 /* ---------- render ---------- */
