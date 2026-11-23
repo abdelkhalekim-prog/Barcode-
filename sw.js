@@ -1,4 +1,4 @@
-const CACHE='asnaf-v6-20261123b';
+const CACHE='asnaf-v7-20261123';
 const IMG='asnaf-img';
 const IMG_MAX=1500;
 const ASSETS=['./','index.html','qrcode.js','jsbarcode.min.js','zxing.min.js','data.pack','manifest.webmanifest','icon-192.png','icon-512.png','fonts/montserrat-latin.woff2','fonts/tajawal-400-arabic.woff2','fonts/tajawal-500-arabic.woff2','fonts/tajawal-700-arabic.woff2','fonts/tajawal-800-arabic.woff2','fonts/tajawal-400-latin.woff2','fonts/tajawal-500-latin.woff2','fonts/tajawal-700-latin.woff2','fonts/tajawal-800-latin.woff2'];

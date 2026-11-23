@@ -36,8 +36,8 @@ jobs:
         working-directory: tools
         run: |
           python merge.py online.jsonl new.jsonl
-          python build_data.py ../master.pack img.json online.jsonl ../data.pack smartlist.json
-          sed -i -E "s/const CACHE='asnaf-v6[^']*';/const CACHE='asnaf-v6-$(date +%Y%m%d)';/" ../sw.js
+          python build_data.py ../master.pack img.json online.jsonl ../data.pack smartlist.json productmix.json
+          sed -i -E "s/const CACHE='asnaf-v7[^']*';/const CACHE='asnaf-v7-$(date +%Y%m%d)';/" ../sw.js
 
       - name: حفظ ونشر
         run: |

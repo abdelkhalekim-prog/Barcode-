@@ -70,8 +70,12 @@ header{position:sticky;top:0;z-index:30;padding:calc(12px + env(safe-area-inset-
 .chip.active{background:#fff;border-color:#fff;color:var(--blue2)}
 .chip[data-f=express].active{color:var(--green)}
 .chip[data-f=global].active{color:var(--teal)}
-.chip[data-f=sl].active{color:var(--orange)}
-.tag.sl{background:#fdeee6;color:var(--orange)}
+.chip[data-f=pm].active{color:#b7791f}
+.tag.pmt{background:var(--blue-soft);color:var(--blue2);font-family:var(--latin)}
+.tag.pmt3{background:linear-gradient(135deg,#f6b83c,#e89a0c);color:#fff}
+.tag.pmt3 svg{fill:currentColor}
+.card.pm{border-inline-start:4px solid var(--blue)}
+.card.pm3{border:1.5px solid #f2c15b;border-inline-start:5px solid #e89a0c;background:linear-gradient(90deg,#fff 70%,#fff8e8)}
 .scat{font-size:12px;color:var(--mut);margin-top:5px;line-height:1.5}
 .scat b{color:var(--blue2);font-weight:700;text-transform:capitalize;font-family:var(--latin)}
 
@@ -212,6 +216,7 @@ mark{background:#fff2b8;color:inherit;border-radius:3px;padding:0 1px}
   <symbol id="i-flash" viewBox="0 0 24 24"><path d="M7 2h10l-2 7h3L9 22l2-9H7z"/></symbol>
   <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14"/></symbol>
   <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></symbol>
+  <symbol id="i-heart" viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/></symbol>
   <symbol id="i-pill" viewBox="0 0 24 24"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7zM8.5 8.5l7 7"/></symbol>
 </svg>
 
@@ -241,8 +246,8 @@ mark{background:#fff2b8;color:inherit;border-radius:3px;padding:0 1px}
       <button class="chip active" data-f="all">الكل</button>
       <button class="chip" data-f="express"><svg class="i"><use href="#i-bolt"/></svg>إكسبريس</button>
       <button class="chip" data-f="global"><svg class="i"><use href="#i-globe"/></svg>جلوبال</button>
-      <button class="chip" data-f="sl"><svg class="i"><use href="#i-list"/></svg>سمارت ليست</button>
-      <button class="chip" data-f="fav"><svg class="i"><use href="#i-star"/></svg>المفضلة</button>
+      <button class="chip" data-f="pm"><svg class="i"><use href="#i-star"/></svg>برودكت ميكس</button>
+      <button class="chip" data-f="fav"><svg class="i"><use href="#i-heart"/></svg>المفضلة</button>
       <button class="chip" data-f="recent"><svg class="i"><use href="#i-clock"/></svg>الأخير</button>
       <button class="chip" data-f="missing"><svg class="i"><use href="#i-inbox"/></svg>مش موجود</button>
     </div>
@@ -287,15 +292,15 @@ mark{background:#fff2b8;color:inherit;border-radius:3px;padding:0 1px}
 <script>
 'use strict';
 const $=s=>document.querySelector(s);
-const VER='٦';
+const VER='٧';
 let ITEMS=[],IMGBASE='',BUILT='',HAY=[],bcMap=new Map(),codeIndex=new Map(),itemBc=[],nExp=0,nGlob=0;
 const LS={get:(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}},set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 let fav=new Set(LS.get('fav',[])),recent=LS.get('recent',[]),missing=LS.get('missing',[]);
 let filter='all',lastQ='',lastRes=[],shown=0;
 const PAGE=40;
 // item fields
-const F={code:0,en:1,ar:2,price:3,img:4,type:5,op:6,dp:7,vat:8,brand:9,cat:10,sl:11};
-let CATS=[],nSL=0;
+const F={code:0,en:1,ar:2,price:3,img:4,type:5,op:6,dp:7,vat:8,brand:9,cat:10,sl:11,pm:12};
+let CATS=[],nSL=0,nPM=0;
 const VAT=1.15;
 
 /* ---------- text normalisation ---------- */
@@ -323,7 +328,7 @@ async function load(){
     HAY=new Array(ITEMS.length);
     for(let i=0;i<ITEMS.length;i++){const it=ITEMS[i];codeIndex.set(it[0],i);
       HAY[i]=' '+norm(it[2])+' '+(it[1]!==it[2]?norm(it[1])+' ':'')+(it[9]?norm(it[9])+' ':'')+it[0]+' ';
-      if(it[11])nSL++;
+      if(it[11])nSL++;if(it[12])nPM++;
       if(it[5]==='e')nExp++;else if(it[5]==='g')nGlob++;}
     bcMap=new Map(b.bc);
     itemBc=Array.from({length:ITEMS.length},()=>[]);
@@ -370,7 +375,7 @@ function search(q){
   }
   if(res.length){
     // sort by score, then name length
-    res.sort((a,b)=>(a&63)-(b&63)||HAY[a>>6].length-HAY[b>>6].length);
+    res.sort((a,b)=>(a&63)-(b&63)||(ITEMS[b>>6][12]||0)-(ITEMS[a>>6][12]||0)||HAY[a>>6].length-HAY[b>>6].length);
     return res.map(x=>x>>6);
   }
   return fuzzy(toks);
@@ -414,7 +419,7 @@ function fuzzy(toks){
     if(!acc.size)return[];
   }
   const out=[...acc];
-  out.sort((a,b)=>a[1]-b[1]||HAY[a[0]].length-HAY[b[0]].length);
+  out.sort((a,b)=>a[1]-b[1]||(ITEMS[b[0]][12]||0)-(ITEMS[a[0]][12]||0)||HAY[a[0]].length-HAY[b[0]].length);
   const cut=out[0][1]+1; // keep only the closest matches, drop noise
   return out.filter(x=>x[1]<=cut).map(x=>x[0]);
 }
@@ -435,10 +440,11 @@ function priceInfo(it){
   return{v:'',src:'',vat,on,disc};
 }
 function row(l,v,old){return `<div class="pbox" style="grid-column:1/-1;display:flex;justify-content:space-between;align-items:center"><div class="l">${l}</div><div class="v" style="font-size:17px">${v} <small>ر.س</small>${old?`<s>${old}</s>`:''}</div></div>`;}
+function pmTag(p){return p===3?'<span class="tag pmt3"><svg class="i"><use href="#i-star"/></svg>أولوية</span>':p?'<span class="tag pmt">PM</span>':'';}
 function tagHTML(t){return t==='e'?'<span class="tag e"><svg class="i"><use href="#i-bolt"/></svg>إكسبريس</span>':t==='g'?'<span class="tag g"><svg class="i"><use href="#i-globe"/></svg>جلوبال</span>':'';}
 function card(idx){
   const it=ITEMS[idx],pi=priceInfo(it),on=fav.has(it[0]);
-  const d=document.createElement('div');d.className='card';d.dataset.idx=idx;
+  const d=document.createElement('div');d.className='card'+(it[F.pm]===3?' pm3':it[F.pm]?' pm':'');d.dataset.idx=idx;
   const im=it[F.img];
   d.innerHTML=`<div class="thumb${im?'':' none'}">${im?`<img loading="lazy" decoding="async" alt="" src="${imgUrl(im,160)}" onload="this.classList.add('ok')" onerror="this.parentNode.classList.add('none');this.replaceWith(document.querySelector('#tplbox').content.cloneNode(true))">`:'<svg class="i"><use href="#i-box"/></svg>'}</div>
   <div class="info">
@@ -446,7 +452,7 @@ function card(idx){
     ${it[1]&&it[1]!==it[2]?`<div class="en">${hl(it[1])}</div>`:''}
     <div class="row">
       ${pi.v?`<span class="price">${pi.v}<small>ر.س</small>${pi.src==='o'?'<small>أونلاين</small>':pi.vat===1?'<small>بالضريبة</small>':''}</span>`:'<span class="price na">بدون سعر</span>'}
-      ${tagHTML(it[F.type])}${it[F.sl]?'<span class="tag sl">SL</span>':''}
+      ${pmTag(it[F.pm])}${tagHTML(it[F.type])}
       <span class="code">${esc(it[0])}</span>
     </div>
   </div>
@@ -464,7 +470,7 @@ function hl(s){
 function applyType(list){
   if(filter==='express')return list.filter(i=>ITEMS[i][F.type]==='e');
   if(filter==='global')return list.filter(i=>ITEMS[i][F.type]==='g');
-  if(filter==='sl')return list.filter(i=>ITEMS[i][F.sl]);
+  if(filter==='pm')return list.filter(i=>ITEMS[i][F.pm]);
   return list;
 }
 function hint(icon,title,sub){return `<div class="hint"><div class="ic"><svg class="i"><use href="#i-${icon}"/></svg></div><b>${title}</b><br>${sub}</div>`;}
@@ -475,7 +481,7 @@ function startScreen(){
     <div><b>غلطة إملائية؟</b>عادي، «psnadol» هتجيب بنادول.</div>
     <div><b>كلمتين</b>«بنادول اكسترا» أدق من كلمة واحدة.</div>
     <div><b>دوس على الصنف</b>يطلع الباركود كبير تعمله سكان.</div>
-    <div><b>إكسبريس / جلوبال / سمارت ليست</b>فلتر النتايج من فوق.</div>
+    <div><b>برودكت ميكس</b>أصنافه بتطلع الأول، والأهم عليه «أولوية».</div>
   </div>
   <div class="ver">إصدار ${VER}${BUILT?' • بيانات النهدي أونلاين: '+BUILT:''}</div></div>`;
 }
@@ -498,8 +504,12 @@ function render(){
   else if(filter==='recent'){list=recent.map(c=>codeIndex.get(c)).filter(x=>x!=null);
     if(!list.length){main.innerHTML=hint('clock','مفيش أصناف فتحتها','آخر الأصناف اللي فتحتها هتظهر هنا.');return;}}
   else{
-    if(!q){const H={express:['bolt',`${nExp.toLocaleString('ar-EG')} صنف إكسبريس`],global:['globe',`${nGlob.toLocaleString('ar-EG')} صنف جلوبال`],sl:['list',`${nSL.toLocaleString('ar-EG')} صنف في السمارت ليست`]};
+    if(!q&&filter==='pm'){
+      list=[];for(let i=0;i<ITEMS.length;i++)if(ITEMS[i][12])list.push(i);
+      list.sort((a,b)=>ITEMS[b][12]-ITEMS[a][12]||HAY[a].length-HAY[b].length);
+    }else if(!q){const H={express:['bolt',`${nExp.toLocaleString('ar-EG')} صنف إكسبريس`],global:['globe',`${nGlob.toLocaleString('ar-EG')} صنف جلوبال`]};
       main.innerHTML=filter==='all'?startScreen():hint(H[filter][0],H[filter][1],'اكتب اسم الصنف أو الماركة، وهتظهر لك النتايج من النوع ده بس.');return;}
+    else{
     if(q!==lastQ){lastRes=search(q);lastQ=q;}
     list=applyType(lastRes);
     if(!list.length){
@@ -512,6 +522,7 @@ function render(){
       const r=$('#recMiss');if(r)r.onclick=()=>{addMissing(q);toast('اتسجّل في «مش موجود»');};
       const a=$('#toAll');if(a)a.onclick=()=>setFilter('all');
       return;
+    }
     }
   }
   main.insertAdjacentHTML('beforeend',`<div class="count"><span><b>${list.length.toLocaleString('ar-EG')}</b> نتيجة</span><span></span></div>`);
@@ -566,7 +577,7 @@ function openItem(idx){
   $('#mImg').innerHTML=im?`<img alt="" src="${imgUrl(im,400)}" onerror="this.replaceWith(document.querySelector('#tplbox').content.cloneNode(true))">`:'<svg class="i"><use href="#i-box"/></svg>';
   const pi=priceInfo(it);
   let tags=tagHTML(it[F.type]);if(pi.disc)tags+=`<span class="tag o">عرض أونلاين ${pi.disc} ر.س</span>`;
-  if(it[F.sl])tags+='<span class="tag sl"><svg class="i"><use href="#i-list"/></svg>سمارت ليست</span>';
+  if(it[F.pm])tags=(it[F.pm]===3?'<span class="tag pmt3"><svg class="i"><use href="#i-star"/></svg>برودكت ميكس • أولوية عالية</span>':'<span class="tag pmt"><svg class="i"><use href="#i-star"/></svg>برودكت ميكس</span>')+tags;
   $('#mTags').innerHTML=tags;
   const cat=CATS[it[F.cat]];
   const [cDiv,cSub]=(cat||'').split('|');

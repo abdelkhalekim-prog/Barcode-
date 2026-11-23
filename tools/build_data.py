@@ -7,6 +7,13 @@ import sys, json, gzip
 src, imgf, onl, out = sys.argv[1:5]
 slf = sys.argv[5] if len(sys.argv) > 5 else ''
 sl = json.load(open(slf, encoding='utf-8')) if slf else {}
+pmf = sys.argv[6] if len(sys.argv) > 6 else ''
+pm = json.load(open(pmf)) if pmf else {}
+
+def tier(x):
+    # product mix level only (the multiplier itself changes monthly and is never shipped)
+    if x is None: return 0
+    return 3 if x >= 10 else 2 if x >= 8 else 1
 DIV = {'WELLNESS': 'صحة وعافية', 'BEAUTY': 'تجميل', 'PERSONAL CARE': 'عناية شخصية', 'MOM AND BABY': 'الأم والطفل', 'MEDICINE': 'أدوية'}
 NOT_MEDICINE = {'BEAUTY', 'PERSONAL CARE', 'MOM AND BABY'}
 cats, catix = [], {}
@@ -44,14 +51,16 @@ for it in d['items']:
     if code in sl:
         b, div, cat, sub = sl[code]
         brand, isl = b, 1
-        lab = DIV.get(div, div.title()) + '|' + ' › '.join(x for x in (cat.title(), sub.title()) if x)
+        lab = DIV.get(div, div.title()) + '|' + ' › '.join(x.title() for x in (cat, sub) if x)
         if lab not in catix: catix[lab] = len(cats); cats.append(lab)
         ci = catix[lab]
         # the user confirmed: only medicines are VAT-free, so these divisions carry 15%
         if v == '' and div in NOT_MEDICINE: v = 1
     if v == 1: stats['vat'] += 1
     elif v == 0: stats['novat'] += 1
-    items.append([code, en, ar, price if has else '', im, t, op, dp, v, brand, ci, isl])
+    tr = tier(pm.get(code))
+    if tr: stats['pm%d' % tr] = stats.get('pm%d' % tr, 0) + 1
+    items.append([code, en, ar, price if has else '', im, t, op, dp, v, brand, ci, isl, tr])
 pack = {'v': 2, 'built': __import__('datetime').date.today().isoformat(), 'imgBase': PRE,
         'items': items, 'bc': d['bc'], 'cats': cats}
 with gzip.open(out, 'wt', encoding='utf-8', compresslevel=9) as f:
