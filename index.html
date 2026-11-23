@@ -291,7 +291,7 @@ mark{background:#fff2b8;color:inherit;border-radius:3px;padding:0 1px}
 <script>
 'use strict';
 const $=s=>document.querySelector(s);
-const VER='٩';
+const VER='١٠';
 let ITEMS=[],IMGBASE='',BUILT='',HAY=[],bcMap=new Map(),codeIndex=new Map(),itemBc=[],nExp=0,nGlob=0;
 const LS={get:(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}},set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 let fav=new Set(LS.get('fav',[])),recent=LS.get('recent',[]),missing=LS.get('missing',[]);
@@ -563,7 +563,7 @@ $('#exportMissing').onclick=()=>{
 let bc={idx:-1,list:[],cur:0,mode:LS.get('bcmode','qr')};
 function openItem(idx){
   const it=ITEMS[idx];if(!it)return;
-  const list=(itemBc[idx]||[]).slice();if(!list.length)list.push(it[0]);
+  const list=(itemBc[idx]||[]).slice(0,20); // newest 20 only (all are still used for scanning lookup)if(!list.length)list.push(it[0]);
   bc.idx=idx;bc.list=list;bc.cur=0;
   $('#mName').textContent=it[2]||it[1];
   $('#mEn').textContent=it[1]&&it[1]!==it[2]?it[1]:'';
