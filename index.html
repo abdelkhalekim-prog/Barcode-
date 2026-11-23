@@ -71,9 +71,9 @@ header{position:sticky;top:0;z-index:30;padding:calc(12px + env(safe-area-inset-
 .chip[data-f=express].active{color:var(--green)}
 .chip[data-f=global].active{color:var(--teal)}
 .chip[data-f=pm].active{color:#b7791f}
-.tag.pmt{background:var(--blue-soft);color:var(--blue2);font-family:var(--latin)}
-.tag.pmt3{background:linear-gradient(135deg,#f6b83c,#e89a0c);color:#fff}
-.tag.pmt3 svg{fill:currentColor}
+.pmi{display:inline-grid;place-items:center;width:24px;height:22px;border-radius:6px;background:var(--blue-soft);color:var(--blue)}
+.pmi svg{width:14px;height:14px;fill:currentColor}
+.pmi.top{background:linear-gradient(135deg,#f6b83c,#e89a0c);color:#fff}
 .card.pm{border-inline-start:4px solid var(--blue)}
 .card.pm3{border:1.5px solid #f2c15b;border-inline-start:5px solid #e89a0c;background:linear-gradient(90deg,#fff 70%,#fff8e8)}
 .scat{font-size:12px;color:var(--mut);margin-top:5px;line-height:1.5}
@@ -109,7 +109,7 @@ main{flex:1;padding:14px 14px 100px}
 .code{font:600 12px var(--latin);color:var(--blue);direction:ltr;margin-inline-start:auto;letter-spacing:.3px}
 .star{position:absolute;top:8px;inset-inline-end:8px;width:32px;height:32px;border:0;border-radius:10px;background:transparent;color:#c4c4c4;cursor:pointer;display:grid;place-items:center}
 .star svg{width:19px;height:19px}
-.star.on{color:#f2a900}.star.on svg{fill:currentColor}
+.star.on{color:var(--red)}.star.on svg{fill:currentColor}
 mark{background:#fff2b8;color:inherit;border-radius:3px;padding:0 1px}
 .more{display:flex;margin:8px auto 0;padding:12px 22px}
 
@@ -237,7 +237,7 @@ mark{background:#fff2b8;color:inherit;border-radius:3px;padding:0 1px}
     <div class="searchbar">
       <div class="inp">
         <svg class="i"><use href="#i-search"/></svg>
-        <input id="q" type="search" inputmode="search" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="search" placeholder="اسم الصنف أو الكود أو الباركود">
+        <input id="q" type="search" inputmode="search" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="search" placeholder="الاسم أو الكود أو الباركود">
         <button class="clear" id="clear" aria-label="مسح"><svg class="i"><use href="#i-x"/></svg></button>
       </div>
       <button class="scanbtn" id="scan" aria-label="مسح باركود"><svg class="i"><use href="#i-scan"/></svg></button>
@@ -246,7 +246,7 @@ mark{background:#fff2b8;color:inherit;border-radius:3px;padding:0 1px}
       <button class="chip active" data-f="all">الكل</button>
       <button class="chip" data-f="express"><svg class="i"><use href="#i-bolt"/></svg>إكسبريس</button>
       <button class="chip" data-f="global"><svg class="i"><use href="#i-globe"/></svg>جلوبال</button>
-      <button class="chip" data-f="pm"><svg class="i"><use href="#i-star"/></svg>برودكت ميكس</button>
+      <button class="chip" data-f="pm" aria-label="PM"><svg class="i" style="fill:currentColor"><use href="#i-star"/></svg></button>
       <button class="chip" data-f="fav"><svg class="i"><use href="#i-heart"/></svg>المفضلة</button>
       <button class="chip" data-f="recent"><svg class="i"><use href="#i-clock"/></svg>الأخير</button>
       <button class="chip" data-f="missing"><svg class="i"><use href="#i-inbox"/></svg>مش موجود</button>
@@ -282,7 +282,6 @@ mark{background:#fff2b8;color:inherit;border-radius:3px;padding:0 1px}
     </div>
     <div class="bcother" id="bcOther"></div>
     <div class="acts" id="mActs"></div>
-    <div class="tip">قرّب الشاشة من الماسح • لو ماقراش جرّب باركود تاني من اللي فوق أو غيّر لـ«خطي»</div>
   </div>
 </div>
 <div class="toast" id="toast"></div>
@@ -292,7 +291,7 @@ mark{background:#fff2b8;color:inherit;border-radius:3px;padding:0 1px}
 <script>
 'use strict';
 const $=s=>document.querySelector(s);
-const VER='٧';
+const VER='٨';
 let ITEMS=[],IMGBASE='',BUILT='',HAY=[],bcMap=new Map(),codeIndex=new Map(),itemBc=[],nExp=0,nGlob=0;
 const LS={get:(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}},set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 let fav=new Set(LS.get('fav',[])),recent=LS.get('recent',[]),missing=LS.get('missing',[]);
@@ -335,7 +334,7 @@ async function load(){
     for(const p of b.bc){if(itemBc[p[1]])itemBc[p[1]].push(p[0]);}
     for(const a of itemBc)a.sort((x,y)=>bcRank(x)-bcRank(y)||x.length-y.length);
     fill.style.width='100%';
-    $('#subcount').textContent=ITEMS.length.toLocaleString('ar-EG')+' صنف • '+(nExp+nGlob).toLocaleString('ar-EG')+' أونلاين';
+    $('#subcount').textContent=ITEMS.length.toLocaleString('ar-EG')+' صنف';
     $('#loader').style.opacity=0;setTimeout(()=>$('#loader').remove(),350);
     // prepare the misspelling index in the background so the first typo search is quick
     setTimeout(()=>{if(!WORDS)wordIndex();},1500);
@@ -440,7 +439,7 @@ function priceInfo(it){
   return{v:'',src:'',vat,on,disc};
 }
 function row(l,v,old){return `<div class="pbox" style="grid-column:1/-1;display:flex;justify-content:space-between;align-items:center"><div class="l">${l}</div><div class="v" style="font-size:17px">${v} <small>ر.س</small>${old?`<s>${old}</s>`:''}</div></div>`;}
-function pmTag(p){return p===3?'<span class="tag pmt3"><svg class="i"><use href="#i-star"/></svg>أولوية</span>':p?'<span class="tag pmt">PM</span>':'';}
+function pmTag(p){return p?`<span class="pmi${p===3?' top':''}"><svg class="i"><use href="#i-star"/></svg></span>`:'';}
 function tagHTML(t){return t==='e'?'<span class="tag e"><svg class="i"><use href="#i-bolt"/></svg>إكسبريس</span>':t==='g'?'<span class="tag g"><svg class="i"><use href="#i-globe"/></svg>جلوبال</span>':'';}
 function card(idx){
   const it=ITEMS[idx],pi=priceInfo(it),on=fav.has(it[0]);
@@ -451,12 +450,12 @@ function card(idx){
     <div class="nm">${hl(it[2]||it[1])}</div>
     ${it[1]&&it[1]!==it[2]?`<div class="en">${hl(it[1])}</div>`:''}
     <div class="row">
-      ${pi.v?`<span class="price">${pi.v}<small>ر.س</small>${pi.src==='o'?'<small>أونلاين</small>':pi.vat===1?'<small>بالضريبة</small>':''}</span>`:'<span class="price na">بدون سعر</span>'}
+      ${pi.v?`<span class="price">${pi.v}<small>ر.س</small></span>`:'<span class="price na">—</span>'}
       ${pmTag(it[F.pm])}${tagHTML(it[F.type])}
       <span class="code">${esc(it[0])}</span>
     </div>
   </div>
-  <button class="star${on?' on':''}" data-star="${it[0]}" aria-label="مفضلة"><svg class="i"><use href="#i-star"/></svg></button>`;
+  <button class="star${on?' on':''}" data-star="${it[0]}" aria-label="مفضلة"><svg class="i"><use href="#i-heart"/></svg></button>`;
   return d;
 }
 let HLT=[];
@@ -476,21 +475,15 @@ function applyType(list){
 function hint(icon,title,sub){return `<div class="hint"><div class="ic"><svg class="i"><use href="#i-${icon}"/></svg></div><b>${title}</b><br>${sub}</div>`;}
 function startScreen(){
   return `<div class="hint"><div class="ic"><svg class="i"><use href="#i-search"/></svg></div>
-  <b>دوّر على أي صنف</b><br>اكتب جزء من الاسم بالعربي أو الإنجليزي، أو الكود، أو امسح الباركود.
-  <div class="tips">
-    <div><b>غلطة إملائية؟</b>عادي، «psnadol» هتجيب بنادول.</div>
-    <div><b>كلمتين</b>«بنادول اكسترا» أدق من كلمة واحدة.</div>
-    <div><b>دوس على الصنف</b>يطلع الباركود كبير تعمله سكان.</div>
-    <div><b>برودكت ميكس</b>أصنافه بتطلع الأول، والأهم عليه «أولوية».</div>
-  </div>
-  <div class="ver">إصدار ${VER}${BUILT?' • بيانات النهدي أونلاين: '+BUILT:''}</div></div>`;
+  اكتب الاسم أو الكود أو امسح الباركود
+  <div class="ver">${BUILT?'تحديث الأسعار: '+BUILT:''}</div></div>`;
 }
 function render(){
   const main=$('#main');main.innerHTML='';shown=0;
   $('#exportMissing').style.display=filter==='missing'&&missing.length?'inline-flex':'none';
   const q=$('#q').value.trim();
   if(filter==='missing'){
-    if(!missing.length){main.innerHTML=hint('inbox','القائمة فاضية','أي صنف تدوّر عليه وماتلاقيهوش، سجّله هنا عشان تبلّغ عنه.');return;}
+    if(!missing.length){main.innerHTML=hint('inbox','القائمة فاضية','');return;}
     main.insertAdjacentHTML('beforeend',`<div class="count"><span><b>${missing.length}</b> صنف مش موجود</span></div>`);
     missing.slice().reverse().forEach(m=>{main.insertAdjacentHTML('beforeend',`<div class="card" style="cursor:default"><div class="info">
       <div class="nm" style="direction:ltr;text-align:right">${esc(m.q)}</div><div class="en">${new Date(m.t).toLocaleString('ar-EG')}</div>
@@ -500,15 +493,15 @@ function render(){
   }
   let list;
   if(filter==='fav'){list=[...fav].map(c=>codeIndex.get(c)).filter(x=>x!=null);
-    if(!list.length){main.innerHTML=hint('star','مفيش مفضلة لسه','دوس على النجمة في أي صنف عشان يتحفظ هنا.');return;}}
+    if(!list.length){main.innerHTML=hint('heart','مفيش مفضلة','');return;}}
   else if(filter==='recent'){list=recent.map(c=>codeIndex.get(c)).filter(x=>x!=null);
-    if(!list.length){main.innerHTML=hint('clock','مفيش أصناف فتحتها','آخر الأصناف اللي فتحتها هتظهر هنا.');return;}}
+    if(!list.length){main.innerHTML=hint('clock','مفيش أصناف','');return;}}
   else{
     if(!q&&filter==='pm'){
       list=[];for(let i=0;i<ITEMS.length;i++)if(ITEMS[i][12])list.push(i);
       list.sort((a,b)=>ITEMS[b][12]-ITEMS[a][12]||HAY[a].length-HAY[b].length);
     }else if(!q){const H={express:['bolt',`${nExp.toLocaleString('ar-EG')} صنف إكسبريس`],global:['globe',`${nGlob.toLocaleString('ar-EG')} صنف جلوبال`]};
-      main.innerHTML=filter==='all'?startScreen():hint(H[filter][0],H[filter][1],'اكتب اسم الصنف أو الماركة، وهتظهر لك النتايج من النوع ده بس.');return;}
+      main.innerHTML=filter==='all'?startScreen():hint(H[filter][0],H[filter][1],'');return;}
     else{
     if(q!==lastQ){lastRes=search(q);lastQ=q;}
     list=applyType(lastRes);
@@ -517,8 +510,8 @@ function render(){
       main.innerHTML=`<div class="notfound"><svg class="i" style="width:40px;height:40px;color:var(--mut2)"><use href="#i-inbox"/></svg>
         <h3>${lastRes.length?'مفيش نتايج من النوع ده':'الصنف مش موجود'}</h3><p>${esc(q)}</p>
         ${lastRes.length?'<button class="btn ghost" id="toAll">اعرض كل الأنواع</button>':`<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
-        <button class="btn" id="recMiss">سجّله في «مش موجود»</button>
-        ${isNum?`<a class="btn ghost" target="_blank" rel="noopener" href="https://www.nahdionline.com/ar-sa/x/pdp/${encodeURIComponent(q)}"><svg class="i"><use href="#i-ext"/></svg>جرّب النهدي أونلاين</a>`:''}</div>`}</div>`;
+        <button class="btn" id="recMiss">سجّله</button>
+        ${isNum?`<a class="btn ghost" target="_blank" rel="noopener" href="https://www.nahdionline.com/ar-sa/x/pdp/${encodeURIComponent(q)}"><svg class="i"><use href="#i-ext"/></svg>النهدي أونلاين</a>`:''}</div>`}</div>`;
       const r=$('#recMiss');if(r)r.onclick=()=>{addMissing(q);toast('اتسجّل في «مش موجود»');};
       const a=$('#toAll');if(a)a.onclick=()=>setFilter('all');
       return;
@@ -576,8 +569,8 @@ function openItem(idx){
   const im=it[F.img];
   $('#mImg').innerHTML=im?`<img alt="" src="${imgUrl(im,400)}" onerror="this.replaceWith(document.querySelector('#tplbox').content.cloneNode(true))">`:'<svg class="i"><use href="#i-box"/></svg>';
   const pi=priceInfo(it);
-  let tags=tagHTML(it[F.type]);if(pi.disc)tags+=`<span class="tag o">عرض أونلاين ${pi.disc} ر.س</span>`;
-  if(it[F.pm])tags=(it[F.pm]===3?'<span class="tag pmt3"><svg class="i"><use href="#i-star"/></svg>برودكت ميكس • أولوية عالية</span>':'<span class="tag pmt"><svg class="i"><use href="#i-star"/></svg>برودكت ميكس</span>')+tags;
+  let tags=tagHTML(it[F.type]);
+  if(it[F.pm])tags=pmTag(it[F.pm])+tags;
   $('#mTags').innerHTML=tags;
   const cat=CATS[it[F.cat]];
   const [cDiv,cSub]=(cat||'').split('|');
@@ -585,18 +578,16 @@ function openItem(idx){
   const store=fmt(it[F.price]);
   let mainL='السعر',extra='';
   if(pi.src==='s'){
-    if(pi.vat===1){mainL='السعر شامل الضريبة';extra=row('قبل الضريبة (ملف الأصناف)',pi.pre);}
-    else if(pi.vat===0){mainL='السعر (دواء • بدون ضريبة)';}
-    else{mainL='سعر ملف الأصناف';extra=row('لو الصنف مش دواء • شامل الضريبة 15%',fmt(pi.pre*VAT));}
-    if(pi.on&&pi.on!==pi.v)extra+=row('النهدي أونلاين (شامل الضريبة)',pi.disc||pi.on,pi.disc?pi.on:'');
-  }else if(pi.src==='o'){mainL='النهدي أونلاين (شامل الضريبة)';if(pi.disc)extra=row('عرض أونلاين',pi.disc,pi.on);}
+    if(pi.vat===1){mainL='شامل الضريبة';extra=row('قبل الضريبة',pi.pre);}
+    if(pi.on&&pi.on!==pi.v)extra+=row('أونلاين',pi.disc||pi.on,pi.disc?pi.on:'');
+  }else if(pi.src==='o'){mainL='أونلاين';if(pi.disc)extra=row('عرض',pi.disc,pi.on);}
   $('#mPrices').innerHTML=
-    `<div class="pbox main"><div class="l">${mainL}</div><div class="v">${pi.v?pi.v+' <small>ر.س</small>':'<small>غير مسجّل</small>'}</div></div>`+
-    `<div class="pbox code" data-copy="${esc(it[0])}"><div class="l">كود الصنف</div><div class="v">${esc(it[0])}</div></div>`+extra;
+    `<div class="pbox main"><div class="l">${mainL}</div><div class="v">${pi.v?pi.v+' <small>ر.س</small>':'<small>—</small>'}</div></div>`+
+    `<div class="pbox code" data-copy="${esc(it[0])}"><div class="l">الكود</div><div class="v">${esc(it[0])}</div></div>`+extra;
   $('#bcOther').innerHTML=list.length>1?list.map((b,i)=>`<button class="bcchip${i?'':' on'}" data-i="${i}">${b}</button>`).join(''):'';
   $('#mActs').innerHTML=`<button class="btn light" data-copy="${esc(list[0])}" id="cpBc"><svg class="i"><use href="#i-copy"/></svg>نسخ الباركود</button>`+
     (it[F.type]||im?`<a class="btn" target="_blank" rel="noopener" href="https://www.nahdionline.com/ar-sa/x/pdp/${esc(it[0])}"><svg class="i"><use href="#i-ext"/></svg>النهدي أونلاين</a>`:
-    `<button class="btn light" data-star2="${esc(it[0])}"><svg class="i"><use href="#i-star"/></svg>${fav.has(it[0])?'شيله من المفضلة':'ضيفه للمفضلة'}</button>`);
+    `<button class="btn light" data-star2="${esc(it[0])}"><svg class="i"><use href="#i-heart"/></svg>${fav.has(it[0])?'شيله من المفضلة':'المفضلة'}</button>`);
   setMode(bc.mode);
   pushRecent(it[0]);
   $('#modal').classList.add('show');history.pushState({m:1},'');
