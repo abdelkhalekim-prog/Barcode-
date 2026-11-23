@@ -319,7 +319,7 @@ mark{background:#fff2b8;color:inherit;border-radius:3px;padding:0 1px}
 <script>
 'use strict';
 const $=s=>document.querySelector(s);
-const VER='١١';
+const VER='١٢';
 let ITEMS=[],IMGBASE='',BUILT='',HAY=[],bcMap=new Map(),codeIndex=new Map(),itemBc=[],nExp=0,nGlob=0;
 const LS={get:(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}},set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 let GOOD=LS.get('good',{});
@@ -361,8 +361,8 @@ async function load(){
     bcMap=new Map(b.bc);
     itemBc=Array.from({length:ITEMS.length},()=>[]);
     for(const p of b.bc){if(itemBc[p[1]])itemBc[p[1]].push(p[0]);}
-    // internal barcodes are numbered in order of creation: show the newest first (older ones may be expired)
-    for(const a of itemBc)a.sort((x,y)=>bcRank(x)-bcRank(y)||x.length-y.length||(x<y?1:x>y?-1:0));
+    // same order as the old app (lowest number first) — this is the order that scanned fine at the register
+    for(const a of itemBc)a.sort((x,y)=>bcRank(x)-bcRank(y)||x.length-y.length||(x<y?-1:x>y?1:0));
     fill.style.width='100%';
     $('#subcount').textContent=ITEMS.length.toLocaleString('ar-EG')+' صنف';
     $('#loader').style.opacity=0;setTimeout(()=>$('#loader').remove(),350);
@@ -592,7 +592,7 @@ $('#exportMissing').onclick=()=>{
 let bc={idx:-1,list:[],cur:0,mode:LS.get('bcmode','qr')};
 function openItem(idx){
   const it=ITEMS[idx];if(!it)return;
-  // newest 20 only (older ones are still used when scanning); a barcode marked as working comes first
+  // first 20 only (the rest are still used when scanning); a barcode marked as working comes first
   let list=(itemBc[idx]||[]).slice(0,20);
   const good=GOOD[it[0]];
   if(good){list=[good,...list.filter(b=>b!==good)].slice(0,20);}
