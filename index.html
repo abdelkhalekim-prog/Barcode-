@@ -291,7 +291,7 @@ mark{background:#fff2b8;color:inherit;border-radius:3px;padding:0 1px}
 <script>
 'use strict';
 const $=s=>document.querySelector(s);
-const VER='٨';
+const VER='٩';
 let ITEMS=[],IMGBASE='',BUILT='',HAY=[],bcMap=new Map(),codeIndex=new Map(),itemBc=[],nExp=0,nGlob=0;
 const LS={get:(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}},set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 let fav=new Set(LS.get('fav',[])),recent=LS.get('recent',[]),missing=LS.get('missing',[]);
@@ -332,7 +332,8 @@ async function load(){
     bcMap=new Map(b.bc);
     itemBc=Array.from({length:ITEMS.length},()=>[]);
     for(const p of b.bc){if(itemBc[p[1]])itemBc[p[1]].push(p[0]);}
-    for(const a of itemBc)a.sort((x,y)=>bcRank(x)-bcRank(y)||x.length-y.length);
+    // internal barcodes are numbered in order of creation: show the newest first (older ones may be expired)
+    for(const a of itemBc)a.sort((x,y)=>bcRank(x)-bcRank(y)||x.length-y.length||(x<y?1:x>y?-1:0));
     fill.style.width='100%';
     $('#subcount').textContent=ITEMS.length.toLocaleString('ar-EG')+' صنف';
     $('#loader').style.opacity=0;setTimeout(()=>$('#loader').remove(),350);
