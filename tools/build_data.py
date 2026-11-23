@@ -20,7 +20,7 @@ for it in d['items']:
     im = img.get(code, '')
     if im.startswith(PRE): im = im[len(PRE):]
     r = on.get(code, {})
-    t = {'express': 'e', 'global': 'g'}.get(r.get('g', ''), '')
+    t = {'express': 'e', 'global': 'g'}.get(r.get('g', '').lower(), '')
     op = num(r.get('p')) if 'p' in r else ''
     dp = num(r.get('d')) if 'd' in r else ''
     try: has = float(price or 0) > 0

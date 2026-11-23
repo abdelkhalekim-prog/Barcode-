@@ -542,9 +542,9 @@ function openItem(idx){
   $('#mTags').innerHTML=tags;
   const store=fmt(it[F.price]);
   $('#mPrices').innerHTML=
-    `<div class="pbox main"><div class="l">${store?'سعر الصيدلية':pi.on?'السعر (من النهدي أونلاين)':'السعر'}</div><div class="v">${pi.v?pi.v+' <small>ر.س</small>':'<small>غير مسجّل</small>'}</div></div>`+
+    `<div class="pbox main"><div class="l">${store?'سعر الصيدلية (ملف الأصناف)':pi.on?'النهدي أونلاين (شامل الضريبة)':'السعر'}</div><div class="v">${pi.v?pi.v+' <small>ر.س</small>':'<small>غير مسجّل</small>'}</div></div>`+
     `<div class="pbox code" data-copy="${esc(it[0])}"><div class="l">كود الصنف</div><div class="v">${esc(it[0])}</div></div>`+
-    (store&&pi.on&&pi.on!==store?`<div class="pbox" style="grid-column:1/-1"><div class="l">النهدي أونلاين</div><div class="v">${pi.disc||pi.on} <small>ر.س</small>${pi.disc?`<s>${pi.on}</s>`:''}</div></div>`:'');
+    (store&&pi.on&&pi.on!==store?`<div class="pbox" style="grid-column:1/-1"><div class="l">النهدي أونلاين (شامل الضريبة)</div><div class="v">${pi.disc||pi.on} <small>ر.س</small>${pi.disc?`<s>${pi.on}</s>`:''}</div></div>`:'');
   $('#bcOther').innerHTML=list.length>1?list.map((b,i)=>`<button class="bcchip${i?'':' on'}" data-i="${i}">${b}</button>`).join(''):'';
   $('#mActs').innerHTML=`<button class="btn light" data-copy="${esc(list[0])}" id="cpBc"><svg class="i"><use href="#i-copy"/></svg>نسخ الباركود</button>`+
     (it[F.type]||im?`<a class="btn" target="_blank" rel="noopener" href="https://www.nahdionline.com/ar-sa/x/pdp/${esc(it[0])}"><svg class="i"><use href="#i-ext"/></svg>النهدي أونلاين</a>`:
