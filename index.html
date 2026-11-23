@@ -70,6 +70,10 @@ header{position:sticky;top:0;z-index:30;padding:calc(12px + env(safe-area-inset-
 .chip.active{background:#fff;border-color:#fff;color:var(--blue2)}
 .chip[data-f=express].active{color:var(--green)}
 .chip[data-f=global].active{color:var(--teal)}
+.chip[data-f=sl].active{color:var(--orange)}
+.tag.sl{background:#fdeee6;color:var(--orange)}
+.scat{font-size:12px;color:var(--mut);margin-top:5px;line-height:1.5}
+.scat b{color:var(--blue2);font-weight:700;text-transform:capitalize;font-family:var(--latin)}
 
 main{flex:1;padding:14px 14px 100px}
 .count{color:var(--mut);font-size:13.5px;font-weight:500;margin:2px 4px 10px;display:flex;justify-content:space-between;align-items:center}
@@ -207,6 +211,7 @@ mark{background:#fff2b8;color:inherit;border-radius:3px;padding:0 1px}
   <symbol id="i-ext" viewBox="0 0 24 24"><path d="M14 3h7v7M10 14 21 3M19 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h5"/></symbol>
   <symbol id="i-flash" viewBox="0 0 24 24"><path d="M7 2h10l-2 7h3L9 22l2-9H7z"/></symbol>
   <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></symbol>
   <symbol id="i-pill" viewBox="0 0 24 24"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7zM8.5 8.5l7 7"/></symbol>
 </svg>
 
@@ -236,6 +241,7 @@ mark{background:#fff2b8;color:inherit;border-radius:3px;padding:0 1px}
       <button class="chip active" data-f="all">الكل</button>
       <button class="chip" data-f="express"><svg class="i"><use href="#i-bolt"/></svg>إكسبريس</button>
       <button class="chip" data-f="global"><svg class="i"><use href="#i-globe"/></svg>جلوبال</button>
+      <button class="chip" data-f="sl"><svg class="i"><use href="#i-list"/></svg>سمارت ليست</button>
       <button class="chip" data-f="fav"><svg class="i"><use href="#i-star"/></svg>المفضلة</button>
       <button class="chip" data-f="recent"><svg class="i"><use href="#i-clock"/></svg>الأخير</button>
       <button class="chip" data-f="missing"><svg class="i"><use href="#i-inbox"/></svg>مش موجود</button>
@@ -259,7 +265,7 @@ mark{background:#fff2b8;color:inherit;border-radius:3px;padding:0 1px}
     <button class="x" id="mClose" aria-label="إغلاق"><svg class="i"><use href="#i-x"/></svg></button>
     <div class="head">
       <div class="pimg" id="mImg"></div>
-      <div style="min-width:0"><div class="sname" id="mName"></div><div class="sen" id="mEn"></div><div class="stags" id="mTags"></div></div>
+      <div style="min-width:0"><div class="sname" id="mName"></div><div class="sen" id="mEn"></div><div class="stags" id="mTags"></div><div class="scat" id="mCat"></div></div>
     </div>
     <div class="prices" id="mPrices"></div>
     <div class="bcview" id="bcView"></div>
@@ -281,14 +287,15 @@ mark{background:#fff2b8;color:inherit;border-radius:3px;padding:0 1px}
 <script>
 'use strict';
 const $=s=>document.querySelector(s);
-const VER='٥';
+const VER='٦';
 let ITEMS=[],IMGBASE='',BUILT='',HAY=[],bcMap=new Map(),codeIndex=new Map(),itemBc=[],nExp=0,nGlob=0;
 const LS={get:(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}},set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 let fav=new Set(LS.get('fav',[])),recent=LS.get('recent',[]),missing=LS.get('missing',[]);
 let filter='all',lastQ='',lastRes=[],shown=0;
 const PAGE=40;
 // item fields
-const F={code:0,en:1,ar:2,price:3,img:4,type:5,op:6,dp:7,vat:8};
+const F={code:0,en:1,ar:2,price:3,img:4,type:5,op:6,dp:7,vat:8,brand:9,cat:10,sl:11};
+let CATS=[],nSL=0;
 const VAT=1.15;
 
 /* ---------- text normalisation ---------- */
@@ -312,10 +319,11 @@ async function load(){
     ltxt.textContent='جاري التجهيز…';fill.style.width='85%';
     await new Promise(r=>setTimeout(r,20));
     const b=JSON.parse(txt);
-    ITEMS=b.items;IMGBASE=b.imgBase||'';BUILT=b.built||'';
+    ITEMS=b.items;IMGBASE=b.imgBase||'';BUILT=b.built||'';CATS=b.cats||[];
     HAY=new Array(ITEMS.length);
     for(let i=0;i<ITEMS.length;i++){const it=ITEMS[i];codeIndex.set(it[0],i);
-      HAY[i]=' '+norm(it[2])+' '+(it[1]!==it[2]?norm(it[1])+' ':'')+it[0]+' ';
+      HAY[i]=' '+norm(it[2])+' '+(it[1]!==it[2]?norm(it[1])+' ':'')+(it[9]?norm(it[9])+' ':'')+it[0]+' ';
+      if(it[11])nSL++;
       if(it[5]==='e')nExp++;else if(it[5]==='g')nGlob++;}
     bcMap=new Map(b.bc);
     itemBc=Array.from({length:ITEMS.length},()=>[]);
@@ -428,7 +436,7 @@ function card(idx){
     ${it[1]&&it[1]!==it[2]?`<div class="en">${hl(it[1])}</div>`:''}
     <div class="row">
       ${pi.v?`<span class="price">${pi.v}<small>ر.س</small>${pi.src==='o'?'<small>أونلاين</small>':pi.vat===1?'<small>بالضريبة</small>':''}</span>`:'<span class="price na">بدون سعر</span>'}
-      ${tagHTML(it[F.type])}
+      ${tagHTML(it[F.type])}${it[F.sl]?'<span class="tag sl">SL</span>':''}
       <span class="code">${esc(it[0])}</span>
     </div>
   </div>
@@ -446,6 +454,7 @@ function hl(s){
 function applyType(list){
   if(filter==='express')return list.filter(i=>ITEMS[i][F.type]==='e');
   if(filter==='global')return list.filter(i=>ITEMS[i][F.type]==='g');
+  if(filter==='sl')return list.filter(i=>ITEMS[i][F.sl]);
   return list;
 }
 function hint(icon,title,sub){return `<div class="hint"><div class="ic"><svg class="i"><use href="#i-${icon}"/></svg></div><b>${title}</b><br>${sub}</div>`;}
@@ -456,7 +465,7 @@ function startScreen(){
     <div><b>غلطة إملائية؟</b>عادي، «psnadol» هتجيب بنادول.</div>
     <div><b>كلمتين</b>«بنادول اكسترا» أدق من كلمة واحدة.</div>
     <div><b>دوس على الصنف</b>يطلع الباركود كبير تعمله سكان.</div>
-    <div><b>إكسبريس / جلوبال</b>فلتر النتايج من فوق.</div>
+    <div><b>إكسبريس / جلوبال / سمارت ليست</b>فلتر النتايج من فوق.</div>
   </div>
   <div class="ver">إصدار ${VER}${BUILT?' • بيانات النهدي أونلاين: '+BUILT:''}</div></div>`;
 }
@@ -479,7 +488,8 @@ function render(){
   else if(filter==='recent'){list=recent.map(c=>codeIndex.get(c)).filter(x=>x!=null);
     if(!list.length){main.innerHTML=hint('clock','مفيش أصناف فتحتها','آخر الأصناف اللي فتحتها هتظهر هنا.');return;}}
   else{
-    if(!q){main.innerHTML=filter==='all'?startScreen():hint(filter==='express'?'bolt':'globe',filter==='express'?`${nExp.toLocaleString('ar-EG')} صنف إكسبريس`:`${nGlob.toLocaleString('ar-EG')} صنف جلوبال`,'اكتب اسم الصنف وهتظهر لك النتايج من النوع ده بس.');return;}
+    if(!q){const H={express:['bolt',`${nExp.toLocaleString('ar-EG')} صنف إكسبريس`],global:['globe',`${nGlob.toLocaleString('ar-EG')} صنف جلوبال`],sl:['list',`${nSL.toLocaleString('ar-EG')} صنف في السمارت ليست`]};
+      main.innerHTML=filter==='all'?startScreen():hint(H[filter][0],H[filter][1],'اكتب اسم الصنف أو الماركة، وهتظهر لك النتايج من النوع ده بس.');return;}
     if(q!==lastQ){lastRes=search(q);lastQ=q;}
     list=applyType(lastRes);
     if(!list.length){
@@ -546,7 +556,11 @@ function openItem(idx){
   $('#mImg').innerHTML=im?`<img alt="" src="${imgUrl(im,400)}" onerror="this.replaceWith(document.querySelector('#tplbox').content.cloneNode(true))">`:'<svg class="i"><use href="#i-box"/></svg>';
   const pi=priceInfo(it);
   let tags=tagHTML(it[F.type]);if(pi.disc)tags+=`<span class="tag o">عرض أونلاين ${pi.disc} ر.س</span>`;
+  if(it[F.sl])tags+='<span class="tag sl"><svg class="i"><use href="#i-list"/></svg>سمارت ليست</span>';
   $('#mTags').innerHTML=tags;
+  const cat=CATS[it[F.cat]];
+  const [cDiv,cSub]=(cat||'').split('|');
+  $('#mCat').innerHTML=[cDiv?esc(cDiv):'',it[F.brand]?`<b dir="ltr">${esc(it[F.brand])}</b>`:'',cSub?`<span dir="ltr">${esc(cSub)}</span>`:''].filter(Boolean).join(' • ');
   const store=fmt(it[F.price]);
   let mainL='السعر',extra='';
   if(pi.src==='s'){
