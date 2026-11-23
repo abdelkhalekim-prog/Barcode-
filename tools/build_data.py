@@ -14,7 +14,7 @@ for line in open(onl, encoding='utf-8'):
 def num(v):
     return ('%g' % v) if isinstance(v, (int, float)) else ''
 items = []
-stats = dict(img=0, e=0, g=0, filled=0)
+stats = dict(img=0, e=0, g=0, filled=0, vat=0, novat=0)
 for it in d['items']:
     code, en, ar, price = it[:4]
     im = img.get(code, '')
@@ -28,7 +28,16 @@ for it in d['items']:
     if not has and op: stats['filled'] += 1
     if im: stats['img'] += 1
     if t: stats[t] += 1
-    items.append([code, en, ar, price if has else '', im, t, op, dp])
+    # VAT: medicines are zero-rated, everything else 15%. The item file price is before VAT,
+    # Nahdi Online's price includes it, so the ratio between them tells us which one it is.
+    v = ''
+    if has and 'p' in r:
+        q = r['p'] / float(price)
+        if abs(q - 1.15) < 0.012: v = 1
+        elif abs(q - 1) < 0.006: v = 0
+    if v == 1: stats['vat'] += 1
+    elif v == 0: stats['novat'] += 1
+    items.append([code, en, ar, price if has else '', im, t, op, dp, v])
 pack = {'v': 2, 'built': __import__('datetime').date.today().isoformat(), 'imgBase': PRE,
         'items': items, 'bc': d['bc']}
 with gzip.open(out, 'wt', encoding='utf-8', compresslevel=9) as f:

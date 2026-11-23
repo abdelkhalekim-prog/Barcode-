@@ -288,7 +288,8 @@ let fav=new Set(LS.get('fav',[])),recent=LS.get('recent',[]),missing=LS.get('mis
 let filter='all',lastQ='',lastRes=[],shown=0;
 const PAGE=40;
 // item fields
-const F={code:0,en:1,ar:2,price:3,img:4,type:5,op:6,dp:7};
+const F={code:0,en:1,ar:2,price:3,img:4,type:5,op:6,dp:7,vat:8};
+const VAT=1.15;
 
 /* ---------- text normalisation ---------- */
 function norm(s){return (s||'').toString().toLowerCase()
@@ -406,10 +407,16 @@ function imgUrl(p,size){return p?IMGBASE+p+`?width=${size}&height=${size}&canvas
 function fmt(v){const n=parseFloat(v);if(!(n>0))return'';return (Math.round(n*100)/100).toString();}
 function priceInfo(it){
   const store=fmt(it[F.price]),on=fmt(it[F.op]),disc=fmt(it[F.dp]);
-  if(store)return{v:store,src:'s',on,disc};
-  if(on)return{v:on,src:'o',on,disc};
-  return{v:'',src:'',on,disc};
+  // vat: 1 = 15% applies (not a medicine), 0 = medicine (no VAT), '' = unknown
+  const vat=it[F.vat];
+  if(store){
+    if(vat===1)return{v:fmt(store*VAT),pre:store,src:'s',vat,on,disc};
+    return{v:store,pre:store,src:'s',vat,on,disc};
+  }
+  if(on)return{v:on,src:'o',vat,on,disc};
+  return{v:'',src:'',vat,on,disc};
 }
+function row(l,v,old){return `<div class="pbox" style="grid-column:1/-1;display:flex;justify-content:space-between;align-items:center"><div class="l">${l}</div><div class="v" style="font-size:17px">${v} <small>ر.س</small>${old?`<s>${old}</s>`:''}</div></div>`;}
 function tagHTML(t){return t==='e'?'<span class="tag e"><svg class="i"><use href="#i-bolt"/></svg>إكسبريس</span>':t==='g'?'<span class="tag g"><svg class="i"><use href="#i-globe"/></svg>جلوبال</span>':'';}
 function card(idx){
   const it=ITEMS[idx],pi=priceInfo(it),on=fav.has(it[0]);
@@ -420,7 +427,7 @@ function card(idx){
     <div class="nm">${hl(it[2]||it[1])}</div>
     ${it[1]&&it[1]!==it[2]?`<div class="en">${hl(it[1])}</div>`:''}
     <div class="row">
-      ${pi.v?`<span class="price">${pi.v}<small>ر.س</small>${pi.src==='o'?'<small>أونلاين</small>':''}</span>`:'<span class="price na">بدون سعر</span>'}
+      ${pi.v?`<span class="price">${pi.v}<small>ر.س</small>${pi.src==='o'?'<small>أونلاين</small>':pi.vat===1?'<small>بالضريبة</small>':''}</span>`:'<span class="price na">بدون سعر</span>'}
       ${tagHTML(it[F.type])}
       <span class="code">${esc(it[0])}</span>
     </div>
@@ -541,10 +548,16 @@ function openItem(idx){
   let tags=tagHTML(it[F.type]);if(pi.disc)tags+=`<span class="tag o">عرض أونلاين ${pi.disc} ر.س</span>`;
   $('#mTags').innerHTML=tags;
   const store=fmt(it[F.price]);
+  let mainL='السعر',extra='';
+  if(pi.src==='s'){
+    if(pi.vat===1){mainL='السعر شامل الضريبة';extra=row('قبل الضريبة (ملف الأصناف)',pi.pre);}
+    else if(pi.vat===0){mainL='السعر (دواء • بدون ضريبة)';}
+    else{mainL='سعر ملف الأصناف';extra=row('لو الصنف مش دواء • شامل الضريبة 15%',fmt(pi.pre*VAT));}
+    if(pi.on&&pi.on!==pi.v)extra+=row('النهدي أونلاين (شامل الضريبة)',pi.disc||pi.on,pi.disc?pi.on:'');
+  }else if(pi.src==='o'){mainL='النهدي أونلاين (شامل الضريبة)';if(pi.disc)extra=row('عرض أونلاين',pi.disc,pi.on);}
   $('#mPrices').innerHTML=
-    `<div class="pbox main"><div class="l">${store?'سعر الصيدلية (ملف الأصناف)':pi.on?'النهدي أونلاين (شامل الضريبة)':'السعر'}</div><div class="v">${pi.v?pi.v+' <small>ر.س</small>':'<small>غير مسجّل</small>'}</div></div>`+
-    `<div class="pbox code" data-copy="${esc(it[0])}"><div class="l">كود الصنف</div><div class="v">${esc(it[0])}</div></div>`+
-    (store&&pi.on&&pi.on!==store?`<div class="pbox" style="grid-column:1/-1"><div class="l">النهدي أونلاين (شامل الضريبة)</div><div class="v">${pi.disc||pi.on} <small>ر.س</small>${pi.disc?`<s>${pi.on}</s>`:''}</div></div>`:'');
+    `<div class="pbox main"><div class="l">${mainL}</div><div class="v">${pi.v?pi.v+' <small>ر.س</small>':'<small>غير مسجّل</small>'}</div></div>`+
+    `<div class="pbox code" data-copy="${esc(it[0])}"><div class="l">كود الصنف</div><div class="v">${esc(it[0])}</div></div>`+extra;
   $('#bcOther').innerHTML=list.length>1?list.map((b,i)=>`<button class="bcchip${i?'':' on'}" data-i="${i}">${b}</button>`).join(''):'';
   $('#mActs').innerHTML=`<button class="btn light" data-copy="${esc(list[0])}" id="cpBc"><svg class="i"><use href="#i-copy"/></svg>نسخ الباركود</button>`+
     (it[F.type]||im?`<a class="btn" target="_blank" rel="noopener" href="https://www.nahdionline.com/ar-sa/x/pdp/${esc(it[0])}"><svg class="i"><use href="#i-ext"/></svg>النهدي أونلاين</a>`:
