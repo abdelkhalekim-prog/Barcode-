@@ -278,7 +278,6 @@ mark{background:#fff2b8;color:inherit;border-radius:3px;padding:0 1px}
     <div class="seg">
       <button class="active" id="tgQR"><svg class="i"><use href="#i-qr"/></svg>QR</button>
       <button id="tg1D"><svg class="i"><use href="#i-bars"/></svg>خطي</button>
-      <button id="tg2D"><svg class="i"><use href="#i-qr"/></svg>2D</button>
       <button id="tgBright"><svg class="i"><use href="#i-sun"/></svg>سطوع</button>
     </div>
     <div class="bcother" id="bcOther"></div>
@@ -586,7 +585,7 @@ function openItem(idx){
   $('#mPrices').innerHTML=
     `<div class="pbox main"><div class="l">${mainL}</div><div class="v">${pi.v?pi.v+' <small>ر.س</small>':'<small>—</small>'}</div></div>`+
     `<div class="pbox code" data-copy="${esc(it[0])}"><div class="l">الكود</div><div class="v">${esc(it[0])}</div></div>`+extra;
-  bc.g2=realGtins(list);bc.cur2=0;
+  $('#bcOther').innerHTML=list.length>1?list.map((b,i)=>`<button class="bcchip${i?'':' on'}" data-i="${i}">${b}</button>`).join(''):'';
   $('#mActs').innerHTML=`<button class="btn light" data-copy="${esc(list[0])}" id="cpBc"><svg class="i"><use href="#i-copy"/></svg>نسخ الباركود</button>`+
     (it[F.type]||im?`<a class="btn" target="_blank" rel="noopener" href="https://www.nahdionline.com/ar-sa/x/pdp/${esc(it[0])}"><svg class="i"><use href="#i-ext"/></svg>النهدي أونلاين</a>`:
     `<button class="btn light" data-star2="${esc(it[0])}"><svg class="i"><use href="#i-heart"/></svg>${fav.has(it[0])?'شيله من المفضلة':'المفضلة'}</button>`);
@@ -595,10 +594,6 @@ function openItem(idx){
   $('#modal').classList.add('show');history.pushState({m:1},'');
 }
 function draw(){
-  const L=bc.mode==='2d'?bc.g2:bc.list,ci=bc.mode==='2d'?bc.cur2:bc.cur;
-  $('#bcOther').innerHTML=L.length>1?L.map((b,i)=>`<button class="bcchip${i===ci?' on':''}" data-i="${i}">${b}</button>`).join(''):'';
-  if(bc.mode==='2d'){$('#bcView').innerHTML='';const cb=$('#cpBc');if(L.length){if(cb)cb.dataset.copy=L[ci];draw2D(L[ci],$('#bcView'));}
-    else{$('#bcNum').textContent='';$('#bcView').innerHTML='<div style="color:#b91c1c;font-weight:800;text-align:center">مفيش GTIN للصنف ده، استخدم QR أو خطي</div>';}return;}
   const v=bc.list[bc.cur];$('#bcNum').textContent=v;const view=$('#bcView');view.innerHTML='';
   const cb=$('#cpBc');if(cb)cb.dataset.copy=v;
   try{
@@ -608,29 +603,12 @@ function draw(){
       try{JsBarcode(s,v,{format:fmt13?'EAN13':'CODE128',width:2.4,height:120,displayValue:false,margin:8});}
       catch(e){JsBarcode(s,v,{format:'CODE128',width:2.4,height:120,displayValue:false,margin:8});}}
   }catch(e){view.innerHTML='<div style="color:#b91c1c;font-weight:800">تعذّر عرض الباركود</div>';}
+  document.querySelectorAll('.bcchip').forEach(c=>c.classList.toggle('on',+c.dataset.i===bc.cur));
 }
-function setMode(m){bc.mode=m;LS.set('bcmode',m);$('#tgQR').classList.toggle('active',m==='qr');$('#tg1D').classList.toggle('active',m==='1d');$('#tg2D').classList.toggle('active',m==='2d');draw();}
-$('#tgQR').onclick=()=>setMode('qr');$('#tg1D').onclick=()=>setMode('1d');$('#tg2D').onclick=()=>setMode('2d');
-/* GS1 DataMatrix (2D) like the one printed on the box: (01) + GTIN-14 */
-let bwipP=null;
-function loadBwip(){return bwipP||(bwipP=new Promise((ok,no)=>{const sc=document.createElement('script');sc.src='bwip-js.min.js';sc.onload=()=>ok(window.bwipjs);sc.onerror=()=>{bwipP=null;no();};document.head.appendChild(sc);}));}
-function gtin14(v){v=String(v).replace(/\D/g,'');if(!/^\d{8}$|^\d{12,14}$/.test(v))return null;v=v.padStart(14,'0');
-  let t=0;for(let i=0;i<13;i++)t+=(+v[i])*(i%2?1:3);return (10-t%10)%10===+v[13]?v:null;}
-/* manufacturer GTINs only (skip in-store codes like 7777…, 8888…, 5555…, 2…) */
-function realGtins(list){const o=[];for(const x of list){const d=String(x).replace(/\D/g,'').replace(/^0+(?=\d{13})/,'');
-  if(/^(77777|88888|55555|11111|2)/.test(d))continue;const g=gtin14(x);if(g&&!o.includes(g))o.push(g);}return o;}
-function draw2D(v,view){
-  const g=gtin14(v);
-  if(!g){view.innerHTML='<div style="color:#b91c1c;font-weight:800">الباركود ده مش رقم GTIN، جرّب QR أو خطي</div>';return;}
-  $('#bcNum').textContent='(01) '+g;
-  view.innerHTML='<div style="color:var(--mut);font-weight:700">جاري التحميل…</div>';
-  loadBwip().then(b=>{if(bc.mode!=='2d'||bc.g2[bc.cur2]!==v)return;
-    try{view.innerHTML=b.toSVG({bcid:'gs1datamatrix',text:'(01)'+g,scale:6,paddingwidth:2,paddingheight:2});}catch(e){view.innerHTML='<div style="color:#b91c1c;font-weight:800">تعذّر عرض الكود 2D للصنف ده</div>';return;}
-    const s=view.querySelector('svg');if(s){s.style.width='100%';s.style.maxWidth='260px';s.style.height='auto';}
-  }).catch(()=>{view.innerHTML='<div style="color:#b91c1c;font-weight:800">تعذّر عرض الكود، اتأكد من النت</div>';});
-}
+function setMode(m){bc.mode=m;LS.set('bcmode',m);$('#tgQR').classList.toggle('active',m==='qr');$('#tg1D').classList.toggle('active',m!=='qr');draw();}
+$('#tgQR').onclick=()=>setMode('qr');$('#tg1D').onclick=()=>setMode('1d');
 $('#tgBright').onclick=function(){$('#modal').classList.toggle('bright',this.classList.toggle('active'));};
-$('#bcOther').onclick=e=>{const c=e.target.closest('.bcchip');if(c){if(bc.mode==='2d')bc.cur2=+c.dataset.i;else bc.cur=+c.dataset.i;draw();}};
+$('#bcOther').onclick=e=>{const c=e.target.closest('.bcchip');if(c){bc.cur=+c.dataset.i;draw();}};
 $('#sheet').addEventListener('click',e=>{const cp=e.target.closest('[data-copy]');if(cp)copy(cp.dataset.copy);
   const s=e.target.closest('[data-star2]');if(s){const c=s.dataset.star2;fav.has(c)?fav.delete(c):fav.add(c);LS.set('fav',[...fav]);toast(fav.has(c)?'اتضاف للمفضلة':'اتشال من المفضلة');openItem(bc.idx);history.back();}});
 function closeModal(){if($('#modal').classList.contains('show')){$('#modal').classList.remove('show','bright');$('#tgBright').classList.remove('active');
