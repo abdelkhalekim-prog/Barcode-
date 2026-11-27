@@ -1,7 +1,7 @@
-const CACHE='asnaf-v7-20261123c';
+const CACHE='asnaf-v7-20261127';
 const IMG='asnaf-img';
 const IMG_MAX=1500;
-const ASSETS=['./','index.html','qrcode.js','jsbarcode.min.js','zxing.min.js','data.pack','manifest.webmanifest','icon-192.png','icon-512.png','fonts/montserrat-latin.woff2','fonts/tajawal-400-arabic.woff2','fonts/tajawal-500-arabic.woff2','fonts/tajawal-700-arabic.woff2','fonts/tajawal-800-arabic.woff2','fonts/tajawal-400-latin.woff2','fonts/tajawal-500-latin.woff2','fonts/tajawal-700-latin.woff2','fonts/tajawal-800-latin.woff2'];
+const ASSETS=['./','index.html','qrcode.js','jsbarcode.min.js','bwip-js.min.js','zxing.min.js','data.pack','manifest.webmanifest','icon-192.png','icon-512.png','fonts/montserrat-latin.woff2','fonts/tajawal-400-arabic.woff2','fonts/tajawal-500-arabic.woff2','fonts/tajawal-700-arabic.woff2','fonts/tajawal-800-arabic.woff2','fonts/tajawal-400-latin.woff2','fonts/tajawal-500-latin.woff2','fonts/tajawal-700-latin.woff2','fonts/tajawal-800-latin.woff2'];
 self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS).catch(()=>{})));});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE&&k!==IMG).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});
 async function trimImg(){const c=await caches.open(IMG);const ks=await c.keys();if(ks.length>IMG_MAX)for(const k of ks.slice(0,ks.length-IMG_MAX))await c.delete(k);}
